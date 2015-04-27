@@ -133,6 +133,26 @@ if test "$gl_gcc_werror" = yes; then
     AC_SUBST([WERROR_CFLAGS])
 fi
 
+AC_ARG_ENABLE([mingwport],
+   [AS_HELP_STRING([--enable-mingwport],
+                   [create config.h for libguestfs-mingw-port])],
+   [case $enableval in
+    yes|no) ;;
+    *)      AC_MSG_ERROR([bad value $enableval for mingwport option]) ;;
+    esac
+    mingwport=$enableval],
+   [mingwport=no]
+)
+
+dnl Check for libguestfs-mingw-port
+if test "$mingwport" = yes; then
+    AC_MSG_NOTICE([libguestfs-mingw-port enabled])
+    case $host in
+    *mingw*) AC_MSG_NOTICE([mingw environment detected]) ;;
+    *)       AC_MSG_WARN([use mingwport option only in MinGW environment]) ;;
+    esac
+fi
+
 dnl This, $nw, is the list of warnings we disable.
 nw=
 nw="$nw -Waggregate-return"          # anachronistic
@@ -354,7 +374,9 @@ AC_COMPILE_IFELSE([
 #include <sys/un.h>
 struct sockaddr_un myaddr;
       ], [
+        AS_IF([test "$mingwport" = yes], AC_MSG_WARN([cannot get it]),
         AC_MSG_ERROR([cannot get it])
+        )
       ])
     AC_MSG_RESULT([$unix_path_max])
     AC_DEFINE_UNQUOTED([UNIX_PATH_MAX], $unix_path_max, [Custom value for UNIX_PATH_MAX])
@@ -363,7 +385,9 @@ struct sockaddr_un myaddr;
 dnl tgetent, tputs and UP [sic] are all required.  They come from the lower
 dnl tinfo library, but might be part of ncurses directly.
 PKG_CHECK_MODULES([LIBTINFO], [tinfo], [], [
-    PKG_CHECK_MODULES([LIBTINFO], [ncurses])
+        AS_IF([test "$mingwport" = yes], AC_MSG_WARN([No package libtinfo found]), [
+        PKG_CHECK_MODULES([LIBTINFO], [ncurses])
+        ])
 ])
 AC_SUBST([LIBTINFO_CFLAGS])
 AC_SUBST([LIBTINFO_LIBS])
@@ -640,17 +664,23 @@ AS_IF([test "x$enable_probes" != "xno"],[
 dnl Check for cpio which isn't in the default Pardus install amazingly.
 AC_CHECK_PROG([CPIO],[cpio],[cpio],[no])
 test "x$CPIO" = "xno" &&
+    AS_IF([test "$mingwport" = yes], AC_MSG_WARN([cpio must be installed]),
     AC_MSG_ERROR([cpio must be installed])
+    )
 
 dnl Check for gperf.
 AC_CHECK_PROG([GPERF],[gperf],[gperf],[no])
 test "x$GPERF" = "xno" &&
+    AS_IF([test "$mingwport" = yes], AC_MSG_WARN([gperf must be installed]),
     AC_MSG_ERROR([gperf must be installed])
+    )
 
 dnl Check for perl.
 AC_CHECK_PROG([PERL],[perl],[perl],[no])
 test "x$PERL" = "xno" &&
+    AS_IF([test "$mingwport" = yes], AC_MSG_WARN([perl must be installed]),
     AC_MSG_ERROR([perl must be installed])
+    )
 
 dnl Check for Pod::Man, Pod::Simple.
 AC_MSG_CHECKING([for Pod::Man])
@@ -673,7 +703,10 @@ AC_SUBST([PODWRAPPER])
 dnl Check for genisoimage/mkisofs
 AC_PATH_PROGS([GENISOIMAGE],[genisoimage mkisofs],[no],
     [$PATH$PATH_SEPARATOR/usr/sbin$PATH_SEPARATOR/sbin])
-test "x$GENISOIMAGE" = "xno" && AC_MSG_ERROR([genisoimage must be installed])
+test "x$GENISOIMAGE" = "xno" &&
+    AS_IF([test "$mingwport" = yes], AC_MSG_WARN([genisoimage must be installed]),
+    AC_MSG_ERROR([genisoimage must be installed])
+    )
 
 dnl Check for optional xmllint.
 AC_CHECK_PROG([XMLLINT],[xmllint],[xmllint],[no])
@@ -719,7 +752,10 @@ fi
 
 dnl Check for xzcat (required).
 AC_PATH_PROGS([XZCAT],[xzcat],[no])
-test "x$XZCAT" = "xno" && AC_MSG_ERROR([xzcat must be installed])
+test "x$XZCAT" = "xno" &&
+    AS_IF([test "$mingwport" = yes], AC_MSG_WARN([xzcat must be installed]),
+    AC_MSG_ERROR([xzcat must be installed])
+    )
 AC_DEFINE_UNQUOTED([XZCAT],["$XZCAT"],[Name of xzcat program.])
 
 dnl liblzma can be used by virt-builder (optional).
@@ -922,10 +958,14 @@ AS_IF([test "x$with_readline" != xno],[
     ])
 
 dnl Check for PCRE (required)
+AS_IF([test "$mingwport" = yes], AC_MSG_WARN([skip checking if pcre exists]), [
 PKG_CHECK_MODULES([PCRE], [libpcre])
+])
 
 dnl Check for Augeas >= 1.0.0 (required).
+AS_IF([test "$mingwport" = yes], AC_MSG_WARN([skip checking if augeas >= 1.0.0 exists]), [
 PKG_CHECK_MODULES([AUGEAS],[augeas >= 1.0.0])
+])
 
 dnl libmagic (highly recommended)
 AC_CHECK_LIB([magic],[magic_file],[
@@ -971,11 +1011,13 @@ libvirt_ro_uri='qemu+unix:///system?socket=/var/run/libvirt/libvirt-sock-ro'
 AC_SUBST([libvirt_ro_uri])
 
 dnl libxml2 (required)
+AS_IF([test "$mingwport" = yes], AC_MSG_WARN([skip checking if libxml-2.0 exists]), [
 PKG_CHECK_MODULES([LIBXML2], [libxml-2.0])
 old_LIBS="$LIBS"
 LIBS="$LIBS $LIBXML2_LIBS"
 AC_CHECK_FUNCS([xmlBufferDetach])
 LIBS="$old_LIBS"
+])
 
 dnl libconfig (highly recommended)
 PKG_CHECK_MODULES([LIBCONFIG], [libconfig],[
