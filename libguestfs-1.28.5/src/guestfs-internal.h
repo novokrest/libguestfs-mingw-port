@@ -35,6 +35,7 @@
 #include "hash.h"
 
 #include "guestfs-internal-frontend.h"
+#include "guestfs-internal-osdep.h"
 
 #if ENABLE_PROBES
 #include <sys/sdt.h>
@@ -612,6 +613,11 @@ extern void guestfs___error_errno (guestfs_h *g, int errnum, const char *fs, ...
 extern void guestfs___perrorf (guestfs_h *g, const char *fs, ...)
   __attribute__((format (printf,2,3)));
 
+#ifdef _WIN32
+extern void guestfs___perrorf_win (guestfs_h *g, const char *fs, ...);
+extern void guestfs___perrorf_wsa (guestfs_h *g, const char *fs, ...);
+#endif /* _WIN32 */
+
 extern void guestfs___warning (guestfs_h *g, const char *fs, ...)
   __attribute__((format (printf,2,3)));
 extern void guestfs___debug (guestfs_h *g, const char *fs, ...)
@@ -624,6 +630,12 @@ extern void guestfs___print_BufferOut (FILE *out, const char *buf, size_t buf_si
 
 #define error(g,...) guestfs___error_errno((g),0,__VA_ARGS__)
 #define perrorf guestfs___perrorf
+
+#ifdef _WIN32
+#define perrorf_win guestfs___perrorf_win
+#define perrorf_wsa guestfs___perrorf_wsa
+#endif /* _WIN32 */
+
 #define warning(g,...) guestfs___warning((g),__VA_ARGS__)
 #define debug(g,...) \
   do { if ((g)->verbose) guestfs___debug ((g),__VA_ARGS__); } while (0)
@@ -703,8 +715,8 @@ extern void guestfs___progress_message_callback (guestfs_h *g, const struct gues
 extern void guestfs___log_message_callback (guestfs_h *g, const char *buf, size_t len);
 
 /* conn-socket.c */
-extern struct connection *guestfs___new_conn_socket_listening (guestfs_h *g, int daemon_accept_sock, int console_sock);
-extern struct connection *guestfs___new_conn_socket_connected (guestfs_h *g, int daemon_sock, int console_sock);
+extern struct connection *guestfs___new_conn_socket_listening (guestfs_h *g, os_socket_t daemon_accept_sock, os_socketpair_end_t console_sock);
+extern struct connection *guestfs___new_conn_socket_connected (guestfs_h *g, os_socket_t daemon_sock, os_socketpair_end_t console_sock);
 
 /* events.c */
 extern void guestfs___call_callbacks_void (guestfs_h *g, uint64_t event);

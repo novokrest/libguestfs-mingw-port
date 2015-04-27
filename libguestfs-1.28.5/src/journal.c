@@ -70,7 +70,7 @@ guestfs__journal_get (guestfs_h *g)
   if (guestfs_internal_journal_get (g, tmpfile) == -1)
     goto err;
 
-  fd = open (tmpfile, O_RDONLY|O_CLOEXEC);
+  fd = os_open (tmpfile, O_RDONLY|O_CLOEXEC);
   if (fd == -1) {
     perrorf (g, "open: %s", tmpfile);
     goto err;

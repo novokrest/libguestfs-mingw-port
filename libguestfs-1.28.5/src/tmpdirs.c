@@ -94,7 +94,7 @@ guestfs__get_tmpdir (guestfs_h *g)
   else if (g->env_tmpdir)
     str = g->env_tmpdir;
   else
-    str = "/tmp";
+    str = GUESTFS_TEMP_PATH;
 
   return safe_strdup (g, str);
 }

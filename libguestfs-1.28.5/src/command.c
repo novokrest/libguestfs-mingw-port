@@ -118,7 +118,7 @@ struct command
 
   /* Capture errors to the error log (defaults to true). */
   bool capture_errors;
-  int errorfd;
+  os_pipe_end_t errorfd;
 
   /* Close file descriptors (defaults to true). */
   bool close_files;
@@ -126,14 +126,14 @@ struct command
   /* Supply a callback to receive stdout. */
   cmd_stdout_callback stdout_callback;
   void *stdout_data;
-  int outfd;
+  os_pipe_end_t outfd;
   struct buffering outbuf;
 
   /* For programs that send output to stderr.  Hello qemu. */
   bool stderr_to_stdout;
 
   /* PID of subprocess (if > 0). */
-  pid_t pid;
+  os_process_info_t pid;
 };
 
 /* Create a new command handle. */
@@ -146,8 +146,8 @@ guestfs___new_command (guestfs_h *g)
   cmd->g = g;
   cmd->capture_errors = true;
   cmd->close_files = true;
-  cmd->errorfd = -1;
-  cmd->outfd = -1;
+  cmd->errorfd = OS_PIPE_END_INVALID_VALUE;
+  cmd->outfd = OS_PIPE_END_INVALID_VALUE;
   return cmd;
 }
 
@@ -359,6 +359,118 @@ debug_command (struct command *cmd)
   }
 }
 
+
+#ifdef _WIN32
+
+static int
+run_command(struct command *cmd)
+{
+  HANDLE hStdOut_Wr = NULL, hStdOut_Rd = NULL, hStdErr_Rd = NULL, hStdErr_Wr = NULL;
+  SECURITY_ATTRIBUTES saAttr;
+  STARTUPINFO siStartInfo;
+  CLEANUP_FREE char *cmdline = NULL;
+  BOOL bSuccess;
+
+  saAttr.nLength = sizeof (SECURITY_ATTRIBUTES);
+  saAttr.bInheritHandle = TRUE;
+  saAttr.lpSecurityDescriptor = NULL;
+
+  /* Set up a pipe to capture command output and send it to the error log. */
+  if (cmd->capture_errors) {
+    if (!CreatePipe (&hStdErr_Rd, &hStdErr_Wr, &saAttr, 0) || !SetHandleInformation (hStdErr_Rd, HANDLE_FLAG_INHERIT, 0)) {
+      perrorf_win(cmd->g, "CreatePipe");
+        goto error;
+    }
+  }
+
+  /* Set up a pipe to capture stdout for the callback. */
+  if (cmd->stdout_callback) {
+    if (!CreatePipe (&hStdOut_Rd, &hStdOut_Wr, &saAttr, 0) || !SetHandleInformation (hStdOut_Rd, HANDLE_FLAG_INHERIT, 0)) {
+      perrorf_win (cmd->g, "CreatePipe");
+      goto error;
+    }
+  }
+
+  ZeroMemory(&siStartInfo, sizeof(STARTUPINFO));
+  siStartInfo.cb = sizeof(STARTUPINFO);
+  siStartInfo.dwFlags |= STARTF_USESTDHANDLES;
+
+  if (cmd->capture_errors) {
+    if (!cmd->stdout_callback) {
+      siStartInfo.hStdOutput = hStdErr_Wr;
+    }
+    siStartInfo.hStdError = hStdErr_Wr;
+  }
+
+  if (cmd->stdout_callback) {
+    siStartInfo.hStdOutput = hStdOut_Wr;
+  }
+
+  if (cmd->stderr_to_stdout) {
+    siStartInfo.hStdError = siStartInfo.hStdOutput;
+  }
+
+  switch (cmd->style) {
+  case COMMAND_STYLE_EXECV:
+    cmdline = guestfs___join_strings (" ", cmd->argv.argv);
+    break;
+
+  case COMMAND_STYLE_SYSTEM:
+    cmdline = strdup (cmd->string.str);
+    break;
+
+  case COMMAND_STYLE_NOT_SELECTED:
+    abort();
+  }
+  /*NOTREACHED*/
+
+  bSuccess = CreateProcess (NULL,
+      cmdline,
+      NULL,
+      NULL,
+      TRUE,
+      0,
+      NULL,
+      NULL,
+      &siStartInfo,
+      &cmd->pid);
+
+  if (!bSuccess) {
+    perrorf_win (cmd->g, "CreateProcess");
+    goto error;
+  }
+
+  if (cmd->capture_errors) {
+    CloseHandle (hStdErr_Wr);
+    hStdErr_Wr = NULL;
+    cmd->errorfd = hStdErr_Rd;
+    hStdErr_Rd = NULL;
+  }
+
+  if (cmd->stdout_callback) {
+    CloseHandle (hStdOut_Wr);
+    hStdOut_Wr = NULL;
+    cmd->outfd = hStdOut_Rd;
+    hStdOut_Rd = NULL;
+  }
+
+  return 0;
+
+ error:
+  if (hStdErr_Rd != NULL)
+    CloseHandle (hStdErr_Rd);
+  if (hStdErr_Wr != NULL)
+    CloseHandle (hStdErr_Wr);
+  if (hStdOut_Rd != NULL)
+    CloseHandle (hStdOut_Rd);
+  if (hStdOut_Wr != NULL)
+    CloseHandle (hStdOut_Wr);
+
+  return -1;
+}
+
+#else
+
 static int
 run_command (struct command *cmd)
 {
@@ -497,9 +609,81 @@ run_command (struct command *cmd)
   return -1;
 }
 
+#endif /* _WIN32 */
+
 /* The loop which reads errors and output and directs it either
  * to the log or to the stdout callback as appropriate.
  */
+
+#ifdef _WIN32
+
+static int
+loop (struct command *cmd)
+{
+  DWORD cbAvailable = 0, cbLeft = 0, dwRead = 0;
+  CHAR buf[BUFSIZ];
+  BOOL bSuccess = FALSE;
+  size_t n_hdls = 0;
+
+  if (cmd->errorfd) {
+     ++n_hdls;
+  }
+
+  if (cmd->outfd) {
+     ++n_hdls;
+  }
+
+  while (n_hdls > 0) {
+    if (cmd->errorfd) {
+      bSuccess = PeekNamedPipe (cmd->errorfd, NULL, 0, NULL, &cbAvailable, &cbLeft);
+      if (cbAvailable > 0)
+        bSuccess = ReadFile (cmd->errorfd, buf, BUFSIZ, &dwRead, NULL);
+      if (!bSuccess && GetLastError () != ERROR_BROKEN_PIPE) {
+        perrorf_win (cmd->g, "ReadFile: errorfd");
+        CloseHandle (cmd->errorfd);
+        cmd->errorfd = NULL;
+        --n_hdls;
+      }
+      /* If anonymous pipe is closed (child returns) than GetLastError() == ERROR_BROKEN_PIPE */
+      if (!bSuccess && GetLastError () == ERROR_BROKEN_PIPE) {
+        CloseHandle (cmd->errorfd);
+        cmd->errorfd = NULL;
+        --n_hdls;
+      }
+      if (dwRead > 0) {
+        guestfs___call_callbacks_message (cmd->g, GUESTFS_EVENT_APPLIANCE, buf, dwRead);
+      }
+    }
+
+    if (cmd->outfd) {
+      bSuccess = PeekNamedPipe (cmd->outfd, NULL, 0, NULL, &cbAvailable, &cbLeft);
+      if (cbAvailable > 0)
+        bSuccess = ReadFile (cmd->outfd, buf, BUFSIZ, &dwRead, NULL);
+      if (!bSuccess && GetLastError () != ERROR_BROKEN_PIPE) {
+        perrorf_win (cmd->g, "ReadFile: outfd");
+        CloseHandle (cmd->outfd);
+        cmd->outfd = NULL;
+        --n_hdls;
+      }
+      if (dwRead > 0) {
+        if (cmd->outbuf.add_data)
+          cmd->outbuf.add_data (cmd, buf, dwRead);
+      }
+      if (!bSuccess && GetLastError () == ERROR_BROKEN_PIPE) {
+        if (cmd->outbuf.close_data)
+          cmd->outbuf.close_data (cmd);
+        CloseHandle (cmd->outfd);
+        cmd->outfd = NULL;
+        --n_hdls;
+      }
+    }
+  }
+
+  return 0;
+}
+
+#else
+
 static int
 loop (struct command *cmd)
 {
@@ -586,17 +770,19 @@ loop (struct command *cmd)
   return 0;
 }
 
+#endif /* _WIN32 */
+
 static int
 wait_command (struct command *cmd)
 {
   int status;
 
-  if (waitpid (cmd->pid, &status, 0) == -1) {
+  if (os_process_info__wait (&cmd->pid, &status, 0) == -1) {
     perrorf (cmd->g, "waitpid");
     return -1;
   }
 
-  cmd->pid = 0;
+  os_process_info__set_default (&cmd->pid);
 
   return status;
 }
@@ -644,16 +830,16 @@ guestfs___cmd_close (struct command *cmd)
     break;
   }
 
-  if (cmd->errorfd >= 0)
-    close (cmd->errorfd);
+  if (os_pipe_end__is_valid (cmd->errorfd))
+    os_pipe_end__close (cmd->errorfd);
 
-  if (cmd->outfd >= 0)
-    close (cmd->outfd);
+  if (os_pipe_end__is_valid (cmd->outfd))
+    os_pipe_end__close (cmd->outfd);
 
   free (cmd->outbuf.buffer);
 
-  if (cmd->pid > 0)
-    waitpid (cmd->pid, NULL, 0);
+  if (os_process_info__is_valid (&cmd->pid))
+    os_process_info__wait (&cmd->pid, NULL, 0);
 
   free (cmd);
 }

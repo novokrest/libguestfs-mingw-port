@@ -97,7 +97,7 @@ guestfs__read_file (guestfs_h *g, const char *path, size_t *size_r)
   if (guestfs_download (g, path, tmpfile) == -1)
     goto err;
 
-  fd = open (tmpfile, O_RDONLY|O_CLOEXEC);
+  fd = os_open (tmpfile, O_RDONLY|O_CLOEXEC);
   if (fd == -1) {
     perrorf (g, "open: %s", tmpfile);
     goto err;
@@ -224,7 +224,7 @@ guestfs__find (guestfs_h *g, const char *directory)
   if (guestfs_find0 (g, directory, tmpfile) == -1)
     goto err;
 
-  fd = open (tmpfile, O_RDONLY|O_CLOEXEC);
+  fd = os_open (tmpfile, O_RDONLY|O_CLOEXEC);
   if (fd == -1) {
     perrorf (g, "open: %s", tmpfile);
     goto err;
@@ -326,7 +326,7 @@ write_or_append (guestfs_h *g, const char *path,
   /* Write the content out to a temporary file. */
   tmpfile = safe_asprintf (g, "%s/write%d", g->tmpdir, ++g->unique);
 
-  fd = open (tmpfile, O_WRONLY|O_CREAT|O_NOCTTY|O_CLOEXEC, 0600);
+  fd = os_open (tmpfile, O_WRONLY|O_CREAT|O_NOCTTY|O_CLOEXEC, 0600);
   if (fd == -1) {
     perrorf (g, "open: %s", tmpfile);
     goto err;
@@ -526,7 +526,7 @@ guestfs__ls (guestfs_h *g, const char *directory)
   if (guestfs_ls0 (g, directory, tmpfile) == -1)
     goto err;
 
-  fd = open (tmpfile, O_RDONLY|O_CLOEXEC);
+  fd = os_open (tmpfile, O_RDONLY|O_CLOEXEC);
   if (fd == -1) {
     perrorf (g, "open: %s", tmpfile);
     goto err;

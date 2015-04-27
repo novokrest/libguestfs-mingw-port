@@ -44,6 +44,8 @@ static struct backend {
 } *backends = NULL;
 
 static mode_t get_umask (guestfs_h *g);
+static void debug_umask_info (guestfs_h* g, char const *msg);
+static void debug_euid_info (guestfs_h* g, char const *msg);
 
 int
 guestfs__launch (guestfs_h *g)
@@ -66,7 +68,7 @@ guestfs__launch (guestfs_h *g)
    * directory won't be readable but anyone can see it exists if they
    * want. (RHBZ#610880).
    */
-  if (chmod (g->tmpdir, 0755) == -1)
+  if (os_chmod (g->tmpdir, 0755) == -1)
     warning (g, "chmod: %s: %m (ignored)", g->tmpdir);
 
   /* Some common debugging information. */
@@ -85,8 +87,8 @@ guestfs__launch (guestfs_h *g)
     debug (g, "launch: backend=%s", backend);
 
     debug (g, "launch: tmpdir=%s", g->tmpdir);
-    debug (g, "launch: umask=0%03o", get_umask (g));
-    debug (g, "launch: euid=%d", geteuid ());
+    debug_umask_info (g, "launch");
+    debug_euid_info (g, "launch");
   }
 
   /* Launch the appliance. */
@@ -315,6 +317,9 @@ guestfs___appliance_command_line (guestfs_h *g, const char *appliance_dev,
                                   int flags)
 {
   char root[64] = "";
+#ifdef GUESTFS_IVSHMEM
+  char shm[64] = "";
+#endif /* GUESTFS_IVSHMEM */
   char *term = getenv ("TERM");
   char *ret;
   bool tcg = flags & APPLIANCE_COMMAND_LINE_IS_TCG;
@@ -328,6 +333,13 @@ guestfs___appliance_command_line (guestfs_h *g, const char *appliance_dev,
     if (lpj > 0)
       snprintf (lpj_s, sizeof lpj_s, " lpj=%d", lpj);
   }
+
+#ifdef GUESTFS_IVSHMEM
+  if (g->enable_shm)
+    snprintf (shm, sizeof shm, " guestfs_shm=%s guestfs_shm_size=%d",
+                                  g->shm->ops->get_name(g, g->shm),
+                                  g->shm->ops->get_size(g, g->shm));
+#endif /* GUESTFS_IVSHMEM */
 
   ret = safe_asprintf
     (g,
@@ -363,6 +375,9 @@ guestfs___appliance_command_line (guestfs_h *g, const char *appliance_dev,
      " %s"                      /* selinux */
      "%s"                       /* verbose */
      "%s"                       /* network */
+#ifdef GUESTFS_IVSHMEM
+     "%s"                       /* shared memory */
+#endif /* GUESTFS_IVSHMEM */
      " TERM=%s"                 /* TERM environment variable */
      "%s%s",                    /* append */
 #ifdef __arm__
@@ -373,6 +388,9 @@ guestfs___appliance_command_line (guestfs_h *g, const char *appliance_dev,
      g->selinux ? "selinux=1 enforcing=0" : "selinux=0",
      g->verbose ? " guestfs_verbose=1" : "",
      g->enable_network ? " guestfs_network=1" : "",
+#ifdef GUESTFS_IVSHMEM
+     g->enable_shm ? shm : "",
+#endif /* GUESTFS_IVSHMEM */
      term ? term : "linux",
      g->append ? " " : "", g->append ? g->append : "");
 
@@ -437,6 +455,32 @@ guestfs___get_cpu_model (int kvm)
  * this is only called when g->verbose is true and after g->tmpdir
  * has been created.
  */
+#ifdef _WIN32
+
+static int
+get_umask (guestfs_h *g)
+{
+  int ret;
+
+  ret = umask(0);
+  umask(ret);
+
+  return ret;
+}
+
+static void
+debug_umask_info (guestfs_h* g, char const *msg)
+{
+  debug (g, "%s: umask=0x%.4x", msg, get_umask (g));
+}
+
+static void
+debug_euid_info (guestfs_h* g, const char *msg)
+{
+  debug (g, "%s: username=%s", msg, getusername ());
+}
+#else
+
 static mode_t
 get_umask (guestfs_h *g)
 {
@@ -462,6 +506,20 @@ get_umask (guestfs_h *g)
 
   return ret;
 }
+
+static void
+debug_umask_info (guestfs_h* g, char const *msg)
+{
+  debug (g, "%s: umask=0%03o", msg, get_umask (g));
+}
+
+static void
+debug_euid_info (guestfs_h* g, const char *msg)
+{
+  debug (g, "%s: euid=%d", msg, geteuid ());
+}
+
+#endif /* _WIN32 */
 
 /* Register backends in a global list when the library is loaded. */
 void

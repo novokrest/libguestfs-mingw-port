@@ -100,7 +100,7 @@ disk_create_raw_block (guestfs_h *g, const char *filename)
 {
   int fd;
 
-  fd = open (filename, O_WRONLY|O_NOCTTY|O_CLOEXEC, 0666);
+  fd = os_open (filename, O_WRONLY|O_NOCTTY|O_CLOEXEC, 0666);
   if (fd == -1) {
     perrorf (g, _("cannot open block device: %s"), filename);
     return -1;
@@ -170,7 +170,7 @@ disk_create_raw (guestfs_h *g, const char *filename, int64_t size,
       return disk_create_raw_block (g, filename);
   }
 
-  fd = open (filename, O_WRONLY|O_CREAT|O_NOCTTY|O_TRUNC|O_CLOEXEC, 0666);
+  fd = os_open (filename, O_WRONLY|O_CREAT|O_NOCTTY|O_TRUNC|O_CLOEXEC, 0666);
   if (fd == -1) {
     perrorf (g, _("cannot create raw file: %s"), filename);
     return -1;

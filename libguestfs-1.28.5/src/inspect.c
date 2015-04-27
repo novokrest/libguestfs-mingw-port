@@ -544,7 +544,7 @@ guestfs___download_to_tmp (guestfs_h *g, struct inspect_fs *fs,
     goto error;
   }
 
-  fd = open (r, O_WRONLY|O_CREAT|O_TRUNC|O_NOCTTY|O_CLOEXEC, 0600);
+  fd = os_open (r, O_WRONLY|O_CREAT|O_TRUNC|O_NOCTTY|O_CLOEXEC, 0600);
   if (fd == -1) {
     perrorf (g, "open: %s", r);
     goto error;

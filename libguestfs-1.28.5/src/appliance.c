@@ -51,8 +51,10 @@ static int dir_contains_files (const char *dir, ...);
 static int contains_old_style_appliance (guestfs_h *g, const char *path, void *data);
 static int contains_fixed_appliance (guestfs_h *g, const char *path, void *data);
 static int contains_supermin_appliance (guestfs_h *g, const char *path, void *data);
+#ifndef _WIN32
 static int build_supermin_appliance (guestfs_h *g, const char *supermin_path, uid_t uid, char **kernel, char **dtb, char **initrd, char **appliance);
 static int run_supermin_build (guestfs_h *g, const char *lockfile, const char *appliancedir, const char *supermin_path);
+#endif /* !_WIN32 */
 
 /* Locate or build the appliance.
  *
@@ -119,6 +121,50 @@ guestfs___build_appliance (guestfs_h *g,
   *appliance_rtn = appliance;
   return 0;
 }
+
+#ifdef _WIN32
+
+static int
+build_appliance (guestfs_h* g,
+                 char **kernel,
+                 char **dtb,
+                 char **initrd,
+                 char **appliance)
+{
+  int r;
+  size_t len;
+  CLEANUP_FREE char *appliance_path = NULL;
+
+  len = strlen (g->path) + strlen ("appliance") + 2;
+  appliance_path = safe_malloc (g, len);
+  sprintf (appliance_path, "%s/%s", g->path, "appliance");
+
+  r = find_path (g, contains_fixed_appliance, NULL, &appliance_path);
+
+  if (r == 1) {
+    *kernel = safe_malloc (g, len + 6 /* "kernel" */ + 2);
+    *initrd = safe_malloc (g, len + 6 /* "initrd" */ + 2);
+    *appliance = safe_malloc (g, len + 4 /* "root" */ + 2);
+    sprintf (*kernel, "%s/kernel", appliance_path);
+    sprintf (*initrd, "%s/initrd", appliance_path);
+    sprintf (*appliance, "%s/root", appliance_path);
+
+    /* The dtb file may or may not exist in the fixed appliance. */
+    if (dir_contains_file (appliance_path, "dtb")) {
+      *dtb = safe_malloc (g, len + 3 /* "dtb" */ + 2);
+      sprintf (*dtb, "%s/dtb", appliance_path);
+    }
+    else
+      *dtb = NULL;
+    return 0;
+  }
+
+  error (g, _("cannot find any suitable libguestfs supermin, fixed or old-style appliance on LIBGUESTFS_PATH (search path: %s)"),
+      g->path);
+  return -1;
+}
+
+#else
 
 static int
 build_appliance (guestfs_h *g,
@@ -187,6 +233,8 @@ build_appliance (guestfs_h *g,
   return -1;
 }
 
+#endif /* _WIN32 */
+
 static int
 contains_old_style_appliance (guestfs_h *g, const char *path, void *data)
 {
@@ -206,6 +254,8 @@ contains_supermin_appliance (guestfs_h *g, const char *path, void *data)
 {
   return dir_contains_files (path, "supermin.d", NULL);
 }
+
+#ifndef _WIN32
 
 /* Build supermin appliance from supermin_path to $TMPDIR/.guestfs-$UID.
  *
@@ -371,6 +421,8 @@ run_supermin_build (guestfs_h *g,
 
   return 0;
 }
+
+#endif /* !_WIN32 */
 
 /* Search elements of g->path, returning the first path element which
  * matches the predicate function 'pred'.

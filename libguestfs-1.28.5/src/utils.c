@@ -32,6 +32,8 @@
 #include "guestfs.h"
 #include "guestfs-internal-frontend.h"
 
+#include "guestfs-internal-osdep.h"
+
 /* Note that functions in libutils are used by the tools and language
  * bindings.  Therefore these must not call internal library functions
  * such as safe_*, error or perrorf.
@@ -231,7 +233,7 @@ guestfs___random_string (char *ret, size_t len)
   unsigned char c;
   int saved_errno;
 
-  fd = open ("/dev/urandom", O_RDONLY|O_CLOEXEC);
+  fd = os_open ("/dev/urandom", O_RDONLY|O_CLOEXEC);
   if (fd == -1)
     return -1;
 
