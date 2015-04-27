@@ -1,0 +1,7 @@
+# Makefile for libguestfs-mingw-port: generator
+
+all:
+	@echo "genrator: IMPLEMENT ME!!!"
+
+clean:
+	#echo "generator: IMPLEMENT ME!!!"

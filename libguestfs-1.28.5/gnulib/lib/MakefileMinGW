@@ -1,0 +1,65 @@
+# Makefile for libguestfs-mingw-port: gnulib
+
+top_srcdir = ../..
+
+CC = gcc -std=gnu99
+
+WARN_CFLAGS = 
+CFLAGS = -I. -Igthread -I$(top_srcdir)
+LDFLAGS = 
+LIBS = 
+
+HEADERS = \
+    bitrotate.h \
+	cloexec.h \
+	c-ctype.h \
+	full-read.h \
+	full-write.h \
+	hash.h \
+	hash-pjw.h \
+	ignore-value.h \
+	intprops.h \
+	safe-read.h \
+	safe-write.h \
+	xalloc-oversized.h \
+	xstrtol.h \
+	glthread/lock.h
+
+SOURCES = \
+	bitrotate.c \
+	cloexec.c \
+	c-ctype.c \
+	full-read.c \
+	full-write.c \
+	hash.c \
+	hash-pjw.c \
+	safe-read.c \
+	safe-write.c \
+	xstrtol.c \
+	glthread/lock.c \
+	glthread/threadlib.c
+
+OBJECTS = $(SOURCES:.c=.o)
+
+GNULIB = gnulib
+GNULIB_STATIC = lib$(GNULIB).a
+GNULIB_DYNAMIC = $(GNULIB).dll
+
+all: $(GNULIB_STATIC) $(GNULIB_DYNAMIC)
+
+$(GNULIB_STATIC): $(OBJECTS)
+	ar rcs -o $@ $^
+
+$(GNULIB_DYNAMIC): $(OBJECTS)
+	$(CC) -shared -o $@ $^ $(LD_FLAGS) $(LIBS)
+
+%.o: %.c $(HEADERS)
+	$(CC) -c $(WARN_CFLAGS) $(CFLAGS) -o $@ $<
+
+glthread/%.o: glthread/%.c
+	$(CC) -c $(WARN_CFLAGS) $(CFLAGS) -o $@ $<
+
+clean:
+	rm -f *.o *~
+
+.PHONY: all clean

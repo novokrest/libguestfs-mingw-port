@@ -1,0 +1,176 @@
+# Makefile for libguestfs-mingw-port: guestfs library
+
+all: $(GUESTFS) $(OSDEP) $(WINPORT) $(GNULIB)
+
+top_srcdir = ..
+
+guestfs_dir = $(top_srcdir)/src
+gnulib_dir = $(top_srcdir)/gnulib/lib
+generator_dir = $(top_srcdir)/generator
+osdep_dir = $(top_srcdir)/osdep
+winport_dir = $(top_srcdir)/winport
+deps_dir = $(top_srcdir)/deps
+pcre_dir = $(deps_dir)/pcre
+libxml2_dir = $(deps_dir)/libxml2
+xdr_dir = $(deps_dir)/xdr
+libintl_dir = $(deps_dir)/libintl
+iconv_dir = $(deps_dir)/iconv
+
+CC = gcc -std=gnu99
+PROTOC = protoc-c
+RPCGEN = rpcgen
+GPERF = gperf
+SED = sed
+
+#WARN_CFLAGS = -W -Wabi -Waddress -Waggressive-loop-optimizations -Wall -Warray-bounds -Wattributes -Wbad-function-cast -Wbuiltin-macro-redefined -Wcast-align -Wchar-subscripts -Wclobbered -Wcomment -Wcomments -Wcoverage-mismatch -Wcpp -Wdeprecated -Wdeprecated-declarations -Wdisabled-optimization -Wdiv-by-zero -Wdouble-promotion -Wempty-body -Wendif-labels -Wenum-compare -Wextra -Wformat-contains-nul -Wformat-extra-args -Wformat-nonliteral -Wformat-security -Wformat-y2k -Wformat-zero-length -Wfree-nonheap-object -Wignored-qualifiers -Wimplicit -Wimplicit-function-declaration -Wimplicit-int -Winit-self -Wint-to-pointer-cast -Winvalid-memory-model -Winvalid-pch -Wjump-misses-init -Wlogical-op -Wmain -Wmaybe-uninitialized -Wmissing-braces -Wmissing-declarations -Wmissing-field-initializers -Wmissing-include-dirs -Wmissing-parameter-type -Wmissing-prototypes -Wmultichar -Wnarrowing -Wnested-externs -Wnonnull -Wold-style-declaration -Wold-style-definition -Woverflow -Woverride-init -Wpacked-bitfield-compat -Wparentheses -Wpointer-arith -Wpointer-sign -Wpointer-to-int-cast -Wpragmas -Wreturn-local-addr -Wreturn-type -Wsequence-point -Wsizeof-pointer-memaccess -Wstack-protector -Wstrict-aliasing -Wstrict-overflow -Wstrict-prototypes -Wsuggest-attribute=format -Wsuggest-attribute=noreturn -Wswitch -Wsync-nand -Wtrampolines -Wtrigraphs -Wtype-limits -Wuninitialized -Wunknown-pragmas -Wunused -Wunused-but-set-parameter -Wunused-but-set-variable -Wunused-function -Wunused-label -Wunused-local-typedefs -Wunused-macros -Wunused-parameter -Wunused-result -Wunused-value -Wunused-variable -Wvarargs -Wvariadic-macros -Wvector-operation-performance -Wvolatile-register-var -Wwrite-strings -Wnormalized=nfc -Wno-unused-parameter -Wno-missing-field-initializers -fdiagnostics-show-option -Wframe-larger-than=10000
+#WERROR_CFLAGS = -Werror
+GCC_VISIBILITY_HIDDEN = -fvisibility=hidden
+
+GNULIB_CFLAGS = -I$(gnulib_dir)
+OSDEP_CFLAGS = -I$(osdep_dir)
+WINPORT_CFLAGS = -I$(winport_dir)
+PCRE_CFLAGS = -I$(pcre_dir)/include
+LIBXML2_CFLAGS = -I$(libxml2_dir)/include
+XDR_CFLAGS = -I$(xdr_dir)/include
+
+GNULIB_LIBS = $(gnulib_dir)/libgnulib.a
+OSDEP_LIBS = $(osdep_dir)/libosdep.a
+WINPORT_LIBS = $(winport_dir)/libwinport.a
+PCRE_LIBS = -L$(pcre_dir)/bin -lpcre3
+LIBXML2_LIBS = -L$(libxml2_dir)/bin -llibxml2
+XDR_LIBS = -L$(xdr_dir)/bin -llibportablexdr-0
+LIBINTL_LIBS = -L$(libintl_dir)/bin -llibintl3
+ICONV_LIBS = -L$(iconv_dir)/bin -liconv
+WIN_LIBS = -lws2_32 -lwsock32 -lkernel32 -ladvapi32 
+
+generator_built_headers = \
+    guestfs-internal-frontend-cleanups.h \
+    guestfs-internal-actions.h \
+    guestfs.h \
+    errnostring.h \
+
+built_headers = \
+    $(generator_built_headers) \
+    guestfs_protocol.h
+
+HEADERS = \
+    $(built_headers) \
+    guestfs-internal.h \
+    guestfs-internal-all.h \
+    guestfs-internal-frontend.h
+
+generator_built_sources = \
+    actions-0.c \
+    actions-1.c \
+    actions-2.c \
+    actions-3.c \
+    actions-4.c \
+    actions-5.c \
+    actions-6.c \
+    actions-variants.c \
+    bindtests.c \
+    errnostring.c \
+    structs-cleanup.c \
+    structs-compare.c \
+    structs-copy.c \
+    structs-free.c \
+
+built_sources = \
+    $(generator_built_sources) \
+    errnostring-gperf.c \
+    guestfs_protocol.c
+
+SOURCES = \
+    $(built_sources) \
+    actions-support.c \
+    alloc.c \
+    appliance.c \
+    canonical-name.c \
+    cleanup.c \
+    command.c \
+    conn-socket.c \
+    create.c \
+    drives.c \
+    errors.c \
+    events.c \
+    file.c \
+    filearch.c \
+    fuse.c \
+    guid.c \
+    handle.c \
+    info.c \
+    inspect.c \
+    inspect-apps.c \
+    inspect-icon.c \
+    inspect-fs-cd.c \
+    inspect-fs-unix.c \
+    inspect-fs-windows.c \
+    inspect-fs.c \
+    journal.c \
+    launch.c \
+    launch-direct.c \
+    libvirt-auth.c \
+    libvirt-domain.c \
+    listfs.c \
+    lpj.c \
+    match.c \
+    osinfo.c \
+    proto.c \
+    stringsbuf.c \
+    tmpdirs.c \
+    utils.c \
+    wsa.c    
+
+CPPFLAGS = \
+	-DGUESTFS_DEFAULT_PATH='"C:/GuestFS"' \
+    -DGUESTFS_TEMP_PATH='"C:/GuestFS/tmp"' \
+    -DQEMU='"C:/MinGW/msys/1.0/home/novokrestWin/qemu-windows-ivshmem/build/qemu-system-x86_64.exe"' \
+	-DGUESTFS_WARN_DEPRECATED=1 \
+	-DGUESTFS_PRIVATE=1 \
+	-DLIBOSINFO_DB_PATH='"$(datadir)/libosinfo/db"' \
+    -DHAVE_ENDIAN_H=1 \
+	-DWINVER=0x0501
+
+CFLAGS = \
+    -I$(top_srcdir) \
+    $(WARN_CFLAGS) $(WERROR_CFLAGS) \
+    $(GCC_VISIBILITY_HIDDEN) \
+    $(GNULIB_CFLAGS) \
+    $(OSDEP_CFLAGS) \
+    $(WINPORT_CFLAGS) \
+    $(PCRE_CFLAGS) \
+    $(LIBXML2_CFLAGS) \
+    $(XDR_CFLAGS)
+
+LIBS = \
+    $(XDR_LIBS) \
+    $(PCRE_LIBS) \
+    $(LIBXML2_LIBS) \
+    $(LIBINTL_LIBS) \
+    $(ICONV_LIBS) \
+    $(OSDEP_LIBS) \
+    $(WINPORT_LIBS) \
+    $(GNULIB_LIBS) \
+    $(WIN_LIBS)
+
+OBJECTS = $(SOURCES:.c=.o)
+
+LIBRARY = guestfs
+LIBRARY_STATIC = lib$(LIBRARY).a
+LIBRARY_DYNAMIC = $(LIBRARY).dll
+
+all: $(LIBRARY_STATIC) $(LIBRARY_DYNAMIC)
+
+$(LIBRARY_STATIC): $(OBJECTS)
+	ar rcs -o $@ $^ 
+
+$(LIBRARY_DYNAMIC): $(OBJECTS)
+	$(CC) -shared -o $@ $^ $(LDFLAGS) $(LIBS)
+
+%.o: %.c $(HEADERS)
+	$(CC) -c $(CFLAGS) $(CPPFLAGS) -fPIC -o $@ $<
+
+clean:
+	rm -rf *.o *~
+
+.PHONY: all clean

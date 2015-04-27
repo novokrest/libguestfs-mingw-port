@@ -1,0 +1,35 @@
+# Makefile for libguestfs-mingw-port: main
+
+top_srcdir = .
+mingw_builddir = $(top_srcdir)/mingw-build
+guestfs_dir = $(top_srcdir)/src
+gnulib_dir = $(top_srcdir)/gnulib/lib
+generator_dir = $(top_srcdir)/generator
+osdep_dir = $(top_srcdir)/osdep
+winport_dir = $(top_srcdir)/winport
+
+all: guestfs gnulib generator osdep winport
+
+guestfs: generator gnulib osdep winport
+	$(MAKE) -f MakefileMinGW -C $(guestfs_dir)
+
+gnulib:
+	$(MAKE) -f MakefileMinGW -C $(gnulib_dir)
+
+generator:
+	$(MAKE) -f MakefileMinGW -C $(generator_dir)
+
+osdep:
+	$(MAKE) -f MakefileMinGW -C $(osdep_dir)
+
+winport:
+	$(MAKE) -f MakefileMinGW -C $(winport_dir)
+
+clean:
+	$(MAKE) clean -f MakefileMinGW -C $(guestfs_dir)
+	$(MAKE) clean -f MakefileMinGW -C $(gnulib_dir)
+	$(MAKE) clean -f MakefileMinGW -C $(generator_dir)
+	$(MAKE) clean -f MakefileMinGW -C $(osdep_dir)
+	$(MAKE) clean -f MakefileMinGW -C $(winport_dir)
+
+.PHONY: all clean guestfs gnulib generator osdep winport
