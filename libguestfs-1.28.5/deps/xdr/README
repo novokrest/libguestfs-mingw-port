@@ -1,0 +1,6 @@
+XDR for Windows
+
+MSVC: Build in cygwin with environment variables like in "env.sh"
+
+Links:
+https://code.google.com/p/bsd-xdr/
