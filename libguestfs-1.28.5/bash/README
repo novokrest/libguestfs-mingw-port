@@ -1,3 +1,0 @@
-This directory contains the scripts for tab-completing commands in
-bash.  Note these new-style demand-loaded scripts require
-'bash-completion' >= 1.99.
