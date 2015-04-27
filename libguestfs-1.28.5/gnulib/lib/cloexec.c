@@ -76,8 +76,16 @@ set_cloexec_flag (int desc, bool value)
    prior to exec or spawn.  Returns -1 and sets errno if FD could not
    be duplicated.  */
 
+#ifdef _WIN32
+int
+dup_cloexec (int fd)
+{
+  return -1;
+}
+#else
 int
 dup_cloexec (int fd)
 {
   return fcntl (fd, F_DUPFD_CLOEXEC, 0);
 }
+#endif /* _WIN32 */
