@@ -317,9 +317,6 @@ guestfs___appliance_command_line (guestfs_h *g, const char *appliance_dev,
                                   int flags)
 {
   char root[64] = "";
-#ifdef GUESTFS_IVSHMEM
-  char shm[64] = "";
-#endif /* GUESTFS_IVSHMEM */
   char *term = getenv ("TERM");
   char *ret;
   bool tcg = flags & APPLIANCE_COMMAND_LINE_IS_TCG;
@@ -333,13 +330,6 @@ guestfs___appliance_command_line (guestfs_h *g, const char *appliance_dev,
     if (lpj > 0)
       snprintf (lpj_s, sizeof lpj_s, " lpj=%d", lpj);
   }
-
-#ifdef GUESTFS_IVSHMEM
-  if (g->enable_shm)
-    snprintf (shm, sizeof shm, " guestfs_shm=%s guestfs_shm_size=%d",
-                                  g->shm->ops->get_name(g, g->shm),
-                                  g->shm->ops->get_size(g, g->shm));
-#endif /* GUESTFS_IVSHMEM */
 
   ret = safe_asprintf
     (g,
@@ -375,9 +365,6 @@ guestfs___appliance_command_line (guestfs_h *g, const char *appliance_dev,
      " %s"                      /* selinux */
      "%s"                       /* verbose */
      "%s"                       /* network */
-#ifdef GUESTFS_IVSHMEM
-     "%s"                       /* shared memory */
-#endif /* GUESTFS_IVSHMEM */
      " TERM=%s"                 /* TERM environment variable */
      "%s%s",                    /* append */
 #ifdef __arm__
@@ -388,9 +375,6 @@ guestfs___appliance_command_line (guestfs_h *g, const char *appliance_dev,
      g->selinux ? "selinux=1 enforcing=0" : "selinux=0",
      g->verbose ? " guestfs_verbose=1" : "",
      g->enable_network ? " guestfs_network=1" : "",
-#ifdef GUESTFS_IVSHMEM
-     g->enable_shm ? shm : "",
-#endif /* GUESTFS_IVSHMEM */
      term ? term : "linux",
      g->append ? " " : "", g->append ? g->append : "");
 

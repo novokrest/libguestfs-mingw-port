@@ -634,14 +634,6 @@ launch_direct (guestfs_h *g, void *datav, const char *arg)
     ADD_CMDLINE (VIRTIO_NET ",netdev=usernet");
   }
 
-#ifdef GUESTFS_IVSHMEM
-  /* Set up ivshmem device */
-  if (g->enable_shm) {
-    ADD_CMDLINE ("-device");
-    ADD_CMDLINE_PRINTF("ivshmem,size=%dM,shm=%s", g->shm->size, g->shm->name);
-  }
-#endif /* GUESTFS_IVSHMEM */
-
   ADD_CMDLINE ("-append");
   flags = 0;
   if (!has_kvm || force_tcg)
@@ -745,13 +737,6 @@ launch_direct (guestfs_h *g, void *datav, const char *arg)
 
   if (has_appliance_drive)
     guestfs___add_dummy_appliance_drive (g);
-
-#ifdef GUESTFS_IVSHMEM
-  if (g->enable_shm && g->shm->ops->open(g, g->shm) == -1) {
-    error (g, _("failure to open shared memory"));
-    goto cleanup1;
-  }
-#endif /* GUESTFS_IVSHMEM */
 
   return 0;
 
