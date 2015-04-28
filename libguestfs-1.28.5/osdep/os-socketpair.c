@@ -25,6 +25,8 @@ os_socketpair_end__close (HANDLE sp_end)
 
 #else
 
+#include <unistd.h>
+
 int
 os_socketpair_end__is_valid (int sp_end)
 {

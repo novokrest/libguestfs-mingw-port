@@ -30,6 +30,9 @@ os_socket_info__free (struct tcp_socket_info *sock_info)
 
 #else
 
+#include <stdlib.h>
+#include <unistd.h>
+
 int
 os_socket__is_valid (int sock)
 {

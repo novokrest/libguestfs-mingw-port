@@ -16,10 +16,12 @@ os_pipe_end__close (HANDLE pipe_end)
 
 #else
 
+#include <unistd.h>
+
 int
 os_pipe_end__is_valid (int pipe_end)
 {
-  return *pipe_end >= 0;
+  return pipe_end >= 0;
 }
 
 int
