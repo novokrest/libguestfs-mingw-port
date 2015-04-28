@@ -1,0 +1,226 @@
+# libguestfs-daemon
+# Copyright (C) 2011 Red Hat Inc.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+top_buildir = ..
+top_srcdir = ..
+srcdir = .
+gnulib_dir = $(top_srcdir)/gnulib/lib
+osdep_dir = $(top_srcdir)/osdep
+
+CC = gcc -std=gnu99
+PROTOC = protoc-c
+RPCGEN = rpcgen
+SED = sed
+GPERF = gperf
+DAEMON = guestfsd
+
+#WARN_CFLAGS = -w -W -Wabi -Waddress -Waggressive-loop-optimizations -Wall -Warray-bounds -Wattributes -Wbad-function-cast -Wbuiltin-macro-redefined -Wcast-align -Wchar-subscripts -Wclobbered -Wcomment -Wcomments -Wcoverage-mismatch -Wcpp -Wdeprecated -Wdeprecated-declarations -Wdisabled-optimization -Wdiv-by-zero -Wdouble-promotion -Wempty-body -Wendif-labels -Wenum-compare -Wextra -Wformat-contains-nul -Wformat-extra-args -Wformat-nonliteral -Wformat-security -Wformat-y2k -Wformat-zero-length -Wfree-nonheap-object -Wignored-qualifiers -Wimplicit -Wimplicit-function-declaration -Wimplicit-int -Winit-self -Wint-to-pointer-cast -Winvalid-memory-model -Winvalid-pch -Wjump-misses-init -Wlogical-op -Wmain -Wmaybe-uninitialized -Wmissing-braces -Wmissing-declarations -Wmissing-field-initializers -Wmissing-include-dirs -Wmissing-parameter-type -Wmissing-prototypes -Wmultichar -Wnarrowing -Wnested-externs -Wnonnull -Wold-style-declaration -Wold-style-definition -Woverflow -Woverride-init -Wpacked-bitfield-compat -Wparentheses -Wpointer-arith -Wpointer-sign -Wpointer-to-int-cast -Wpragmas -Wreturn-local-addr -Wreturn-type -Wsequence-point -Wsizeof-pointer-memaccess -Wstack-protector -Wstrict-aliasing -Wstrict-overflow -Wstrict-prototypes -Wsuggest-attribute=format -Wsuggest-attribute=noreturn -Wswitch -Wsync-nand -Wtrampolines -Wtrigraphs -Wtype-limits -Wuninitialized -Wunknown-pragmas -Wunused -Wunused-but-set-parameter -Wunused-but-set-variable -Wunused-function -Wunused-label -Wunused-local-typedefs -Wunused-macros -Wunused-parameter -Wunused-result -Wunused-value -Wunused-variable -Wvarargs -Wvariadic-macros -Wvector-operation-performance -Wvolatile-register-var -Wwrite-strings -Wnormalized=nfc -Wno-unused-parameter -Wno-missing-field-initializers -fdiagnostics-show-option -Wframe-larger-than=10000
+WERROR_CFLAGS = -Werror
+AUGEAS_CFLAGS = -I/usr/include/libxml2
+PCRE_CFLAGS = 
+GNULIB_CFLAGS = -I$(top_srcdir)/gnulib/lib
+OSDEP_CFLAGS = -I$(top_srcdir)/osdep
+
+AUGEAS_LIBS = -laugeas
+PCRE_LIBS = -lpcre
+GNULIB_LIBS = $(gnulib_dir)/libgnulib.a
+OSDEP_LIBS = $(osdep_dir)/libosdep.a
+
+CPPFLAGS = \
+    -I$(srcdir) \
+	-I$(top_srcdir) \
+	-I$(top_srcdir)/src
+
+CFLAGS = \
+	$(WARN_CFLAGS) $(WERROR_CFLAGS) \
+	$(GNULIB_CFLAGS) \
+	$(OSDEP_CFLAGS) \
+	$(AUGEAS_CFLAGS) \
+	$(PCRE_CFLAGS) \
+
+LIBS = 	\
+	$(AUGEAS_LIBS) \
+	$(PCRE_LIBS) \
+	$(GNULIB_LIBS) \
+	$(OSDEP_LIBS)
+
+generator_built_sources = \
+	stubs.c \
+	names.c
+
+shared_with_library_sources = \
+	guestfs_protocol.c \
+	errnostring.c
+
+built_sources = \
+	$(generator_built_sources) \
+	$(shared_with_library_sources) \
+	errnostring-gperf.c
+
+generator_built_headers = \
+	actions.h
+
+shared_with_library_headers = \
+	guestfs_protocol.h \
+	errnostring.h
+
+built_headers = \
+	$(generator_built_headers) \
+	$(shared_with_library_headers)
+
+shared_with_library = \
+	$(shared_with_library_headers) \
+	$(shared_wth_library_sources) \
+	errnostring-gperf.gperf
+
+HEADERS = \
+	$(built_headers) \
+	daemon.h \
+	optgroups.h
+
+SOURCES = \
+	$(built_sources) \
+	9p.c \
+	acl.c \
+	available.c \
+	augeas.c \
+	base64.c \
+	blkdiscard.c \
+	blkid.c \
+	blockdev.c \
+	btrfs.c \
+	cap.c \
+	checksum.c \
+	cmp.c \
+	command.c \
+	compress.c \
+	copy.c \
+	cpio.c \
+	cpmv.c \
+	dd.c \
+	debug.c \
+	devsparts.c \
+	df.c \
+	dir.c \
+	dmesg.c \
+	dropcaches.c \
+	du.c \
+	echo-daemon.c \
+	errnostring.c \
+	ext2.c \
+	fallocate.c \
+	file.c \
+	findfs.c \
+	fill.c \
+	find.c \
+	fsck.c \
+	fstrim.c \
+	glob.c \
+	grep.c \
+	grub.c \
+	guestfsd.c \
+	guestfs_protocol.c \
+	headtail.c \
+	hexdump.c \
+	hotplug.c \
+	hivex.c \
+	htonl.c \
+	initrd.c \
+	inotify.c \
+	internal.c \
+	is.c \
+	isoinfo.c \
+	journal.c \
+	labels.c \
+	ldm.c \
+	link.c \
+	ls.c \
+	luks.c \
+	lvm.c \
+	lvm-filter.c \
+	md.c \
+	mkfs.c \
+	mknod.c \
+	mktemp.c \
+	modprobe.c \
+	mount.c \
+	mountable.c \
+	ntfs.c \
+	ntfsclone.c \
+	optgroups.c \
+	parted.c \
+	pingdaemon.c \
+	proto.c \
+	readdir.c \
+	realpath.c \
+	rename.c \
+	rsync.c \
+	scrub.c \
+	selinux.c \
+	sfdisk.c \
+	sleep.c \
+	stat.c \
+	statvfs.c \
+	strings.c \
+	swap.c \
+	sync.c \
+	syslinux.c \
+	tar.c \
+	truncate.c \
+	umask.c \
+	upload.c \
+	utimens.c \
+	utsname.c \
+	uuids.c \
+	wc.c \
+	xattr.c \
+	xfs.c \
+	zero.c \
+	zerofree.c 
+
+OBJECTS = $(SOURCES:%.c=%.o)
+
+all: $(DAEMON)
+
+$(DAEMON): $(OBJECTS)
+	$(CC) -o $@ $^ $(LIBS)
+
+errnostring-gperf.c: errnostring-gperf.gperf
+	rm -f $@
+	$(GPERF) -t $< > $@-t
+	mv $@-t $@
+
+guestfs_protocol.h: guestfs_protocol.x
+	rm -f $@-t
+	$(RPCGEN) $(RPCGEN_DEFS) -h -o $@-t $<
+	mv $@-t $@
+
+guestfs_protocol.c: guestfs_protocol.x
+	rm -f $@-t $@-t2
+	$(RPCGEN) $(RPCGEN_DEFS) -c -o $@-t $<
+	$(SED) 's,\.\./\(\.\./\)*src,.,' < $@-t > $@-t2
+	rm $@-t
+	mv $@-t2 $@
+
+%.o: %.c $(HEADERS)
+	$(CC) -c $(CPPFLAGS) $(CFLAGS) -o $@ $<
+
+clean:
+	rm -f *.o *~
+
+.PHONY: all clean
+

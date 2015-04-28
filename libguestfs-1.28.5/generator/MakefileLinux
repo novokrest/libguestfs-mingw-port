@@ -1,0 +1,79 @@
+# Makefile for libguestfs-mingw-port: generator
+
+top_srcdir = ..
+srcdir = .
+
+CC = gcc -std=gnu99
+
+OCAMLFIND = ocamlfind
+OCAML_WARN_ERROR = -warn-error CDEFLMPSUVYZX-3
+OCAMLCFLAGS = $(OCAML_WARN_ERROR) -I $(srcdir) -I . -package unix,str
+
+# In alphabetical order.
+SOURCES = \
+	actions.ml \
+	actions.mli \
+	api_versions.ml \
+	api_versions.mli \
+	bindtests.ml \
+	c.ml \
+	checks.ml \
+	customize.ml \
+	daemon.ml \
+	docstrings.ml \
+	errnostring.ml \
+	events.ml \
+	mingw_main.ml \
+	optgroups.ml \
+	pr.ml \
+	pr.mli \
+	prepopts.ml \
+	prepopts.mli \
+	structs.ml \
+	structs.mli \
+	types.ml \
+	utils.ml \
+	utils.mli \
+	xdr.ml
+
+
+# In build dependency order.
+OBJECTS = \
+	types.cmo \
+	utils.cmo \
+	actions.cmo \
+	structs.cmo \
+	api_versions.cmo \
+	optgroups.cmo \
+	prepopts.cmo \
+	events.cmo \
+	pr.cmo \
+	docstrings.cmo \
+	checks.cmo \
+	c.cmo \
+	xdr.cmo \
+	daemon.cmo \
+	bindtests.cmo \
+	errnostring.cmo \
+	customize.cmo \
+	mingw_main.cmo
+
+
+all: generator
+
+generator: $(OBJECTS)
+	$(OCAMLFIND) ocamlc $(OCAMLCFLAGS) -linkpkg $^ -o $@
+
+# Dependencies
+%.cmi: %.mli
+	$(OCAMLFIND) ocamlc $(OCAMLCFLAGS) -c $< -o $@
+%.cmi: %.ml
+	$(OCAMLFIND) ocamlc $(OCAMLCFLAGS) -c $< -o $@
+%.cmo: %.ml %.cmi
+	$(OCAMLFIND) ocamlc $(OCAMLCFLAGS) -c $< -o $@
+	
+clean:
+	rm -f *.cmi *.cmo *~
+
+.SUFFIXES: .cmo .cmi .cmx .ml .mli .mll .mly
+.PHONY: all clean

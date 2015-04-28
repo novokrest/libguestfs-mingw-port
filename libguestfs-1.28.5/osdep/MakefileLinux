@@ -1,0 +1,47 @@
+# Makefile for libguestfs-mingw-port: osdep
+
+top_srcdir = ..
+
+CC = gcc -std=gnu99
+
+WARN_CFLAGS = -Werror
+CFLAGS = $(WARN_CFLAGS)
+LDFLAGS = 
+LIBS = 
+
+HEADERS = \
+    os-error.h \
+    os-fcntl.h \
+    os-pipe.h \
+    os-process.h \
+    os-socket.h \
+    os-socketpair.h
+
+SOURCES = \
+    os-fcntl.c \
+    os-pipe.c \
+    os-process.c \
+    os-socket.c \
+    os-socketpair.c
+
+OBJECTS = $(SOURCES:.c=.o)
+
+LIBRARY = osdep
+LIBRARY_STATIC = lib$(LIBRARY).a
+LIBRARY_DYNAMIC = lib$(LIBRARY).so
+
+all: $(LIBRARY_STATIC) $(LIBRARY_DYNAMIC)
+
+$(LIBRARY_STATIC): $(OBJECTS)
+	ar rcs -o $@ $^ 
+
+$(LIBRARY_DYNAMIC): $(OBJECTS)
+	$(CC) -shared -o $@ $^ $(LDFLAGS) $(LIBS)
+
+%.o: %.c $(HEADERS)
+	$(CC) -c $(CFLAGS) $(WARN_CFLAFS) -fPIC -o $@ $<
+
+clean:
+	rm -rf *.o *~
+
+.PHONY: all clean
