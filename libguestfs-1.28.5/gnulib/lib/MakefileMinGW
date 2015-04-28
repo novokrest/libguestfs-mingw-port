@@ -60,6 +60,6 @@ glthread/%.o: glthread/%.c
 	$(CC) -c $(WARN_CFLAGS) $(CFLAGS) -o $@ $<
 
 clean:
-	rm -f *.o *~
+	rm -f *.o glthread/*.o *~
 
 .PHONY: all clean
