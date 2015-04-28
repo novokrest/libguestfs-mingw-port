@@ -1749,7 +1749,7 @@ create_process_with_redirected_output (guestfs_h *g,
 
     TRACE0 (launch_run_qemu);
 
-    execv (g->hv, cmdline.argv); /* Run qemu. */
+    execv (g->hv, cmdline->argv); /* Run qemu. */
     perror (g->hv);
     _exit (EXIT_FAILURE);
   }
