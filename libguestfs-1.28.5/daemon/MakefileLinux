@@ -90,7 +90,8 @@ shared_with_library = \
 HEADERS = \
 	$(built_headers) \
 	daemon.h \
-	optgroups.h
+	optgroups.h \
+	shared-memory.h
 
 SOURCES = \
 	$(built_sources) \
@@ -172,6 +173,7 @@ SOURCES = \
 	scrub.c \
 	selinux.c \
 	sfdisk.c \
+	shared-memory.c \
 	sleep.c \
 	stat.c \
 	statvfs.c \

@@ -43,6 +43,8 @@
 #include <assert.h>
 #include <termios.h>
 
+#include <inttypes.h>
+
 #ifdef HAVE_PRINTF_H
 # include <printf.h>
 #endif
@@ -83,7 +85,7 @@ int verbose = 0;
 int enable_network = 0;
 
 int enable_shm = 0;
-struct os_shared_memory *shmem = NULL;
+struct shared_memory *shmem = NULL;
 
 static uint64_t get_shm_size (const char *cmdline);
 
@@ -319,11 +321,16 @@ main (int argc, char *argv[])
                && (stat ("/dev/uio0", &statbuf) == 0);
   
   if (enable_shm) {
-    shmem = os_shared_memory__new ("/dev/uio0", get_shm_size (cmdline));
+    shmem = daemon_shared_memory__new ("/dev/uio0", get_shm_size (cmdline));
     if (!shmem) {
       perror ("Failure to initialize shared memory");
       exit (EXIT_FAILURE);
     }
+    if (shmem->ops->open (shmem) == -1) {
+      perror ("Failure to open shared memory");
+      exit (EXIT_FAILURE);
+    }
+    printf ("Shared memory open and mapped\n");
   }
 
   /* cmdline, channel not used after this point */
@@ -362,7 +369,7 @@ main (int argc, char *argv[])
   
   if (enable_shm) {
     shmem->ops->close (shmem);
-    os_shared_memory__free (shmem);
+    daemon_shared_memory__free (shmem);
   }
 
   exit (EXIT_SUCCESS);
@@ -476,7 +483,7 @@ get_shm_size (const char *cmdline)
   p += 17;
   sizeM = atoi (p);
   
-  return (uint64_t) sizeM * 1024 * 1024;
+  return (uint64_t) sizeM << 20;
 }
 
 /* Turn "/path" into "/sysroot/path".

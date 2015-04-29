@@ -772,14 +772,14 @@ send_chunk (void *opaque)
 static int
 send_chunk_shm (const guestfs_shm_chunk *chunk)
 {
-  char buf[256];
+  char buf[GUESTFS_SHM_CHUNK_SIZE];
   char lenbuf[4];
   XDR xdr;
   uint32_t len;
 
   xdrmem_create (&xdr, buf, sizeof buf, XDR_ENCODE);
   if (!xdr_guestfs_shm_chunk (&xdr, (guestfs_shm_chunk *) chunk)) {
-    fprintf (stderr, "guestfsd: send_chunk_shm: failed to encode chunk\n");
+    fprintf (stderr, "guestfsd: send_chunk_shm: failed to encode shm chunk\n");
     xdr_destroy (&xdr);
     return -1;
   }
@@ -804,7 +804,7 @@ send_chunk_shm (const guestfs_shm_chunk *chunk)
 static int
 send_chunk_sock (const guestfs_chunk *chunk)
 {
-  char buf[GUESTFS_SHM_CHUNK_SIZE];
+  char buf[GUESTFS_MAX_CHUNK_SIZE + 48];
   char lenbuf[4];
   XDR xdr;
   uint32_t len;
