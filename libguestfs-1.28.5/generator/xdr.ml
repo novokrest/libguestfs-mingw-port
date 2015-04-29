@@ -248,6 +248,13 @@ struct guestfs_chunk {
   opaque data<GUESTFS_MAX_CHUNK_SIZE>;
 };
 
+const GUESTFS_SHM_CHUNK_SIZE = 64;
+
+struct guestfs_shm_chunk {
+  int cancel;
+  uint64_t len;
+};
+
 /* Progress notifications.  Daemon self-limits these messages to
  * at most one per second.  The daemon can send these messages
  * at any time, and the caller should discard unexpected messages.

@@ -1272,6 +1272,28 @@ it has no effect." };
 This returns the enable network flag." };
 
   { defaults with
+    name = "get_shared_memory";
+    style = RBool "enable", [], [];
+    blocking = false;
+    shortdesc = "get enable shared memory flag";
+    longdesc = "\
+This returns the enable shared memory flag." };
+
+  { defaults with
+    name = "set_shared_memory";
+    style = RErr, [Bool "enable"], [OInt "size"; OString "name"];
+    blocking = false;
+    shortdesc = "enable and configure shared memory parameters";
+    longdesc = "\
+If C<enable> is true, then shared memory is enabled in the 
+libguestfs appliance. The default is false.
+
+This affects whether files are able transfer across shared memory.
+
+You must call this before calling C<guestfs_launch>, otherwise
+it has no effect." };
+
+  { defaults with
     name = "list_filesystems";
     style = RHashtable "fses", [], [];
     shortdesc = "list filesystems";
