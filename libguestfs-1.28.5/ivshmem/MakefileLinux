@@ -1,0 +1,23 @@
+# Makefile for libguestfs-mingw-port: uio module
+
+top_srcdir = ..
+srcdir = .
+uio_dir = $(srcdir)/uio
+
+all: uio install
+
+uio:
+	$(MAKE) -C $(uio_dir)
+
+install:
+	$(MAKE) -C $(uio_dir) install
+
+uninstall:
+	$(MAKE) -C $(uio_dir) uninstall
+
+clean:
+	$(MAKE) -C $(uio_dir) clean
+	rm *~
+
+.PHONY: all uio install uninstall clean
+
