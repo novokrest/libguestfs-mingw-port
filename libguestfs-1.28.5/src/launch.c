@@ -321,6 +321,7 @@ guestfs___appliance_command_line (guestfs_h *g, const char *appliance_dev,
   char *ret;
   bool tcg = flags & APPLIANCE_COMMAND_LINE_IS_TCG;
   char lpj_s[64] = "";
+  char shmem[64] = "";
 
   if (appliance_dev)
     snprintf (root, sizeof root, " root=%s", appliance_dev);
@@ -331,6 +332,9 @@ guestfs___appliance_command_line (guestfs_h *g, const char *appliance_dev,
       snprintf (lpj_s, sizeof lpj_s, " lpj=%d", lpj);
   }
 
+  if (g->shmem)
+    snprintf (shmem, sizeof shmem, " guestfs_shm=1 guestfs_shm_size=%d", g->shmem->ops->get_size (g->shmem));
+  
   ret = safe_asprintf
     (g,
      "panic=1"             /* force kernel to panic if daemon exits */
@@ -365,6 +369,7 @@ guestfs___appliance_command_line (guestfs_h *g, const char *appliance_dev,
      " %s"                      /* selinux */
      "%s"                       /* verbose */
      "%s"                       /* network */
+     "%s"                       /* shared memory */
      " TERM=%s"                 /* TERM environment variable */
      "%s%s",                    /* append */
 #ifdef __arm__
@@ -375,6 +380,7 @@ guestfs___appliance_command_line (guestfs_h *g, const char *appliance_dev,
      g->selinux ? "selinux=1 enforcing=0" : "selinux=0",
      g->verbose ? " guestfs_verbose=1" : "",
      g->enable_network ? " guestfs_network=1" : "",
+     g->shmem ? shmem : "",
      term ? term : "linux",
      g->append ? " " : "", g->append ? g->append : "");
 

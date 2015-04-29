@@ -339,11 +339,17 @@ guestfs___send_file (guestfs_h *g, const char *filename)
 
   /* Send file in chunked encoding. */
   while (!g->user_cancel) {
-    r = read (fd, buf, sizeof buf);
+    if (g->shmem)
+      r = read (fd, g->shmem->ops->get_ptr (g->shmem), g->shmem->ops->get_size (g->shmem));
+    else
+      r = read (fd, buf, sizeof buf);
     if (r == -1 && (errno == EINTR || errno == EAGAIN))
       continue;
     if (r <= 0) break;
-    err = send_file_data (g, buf, r);
+    if (g->shmem)
+      err = send_file_data (g, NULL, r);
+    else
+      err = send_file_data (g, buf, r);
     if (err < 0) {
       if (err == -2)		/* daemon sent cancellation */
         send_file_cancellation (g);
@@ -408,8 +414,83 @@ send_file_complete (guestfs_h *g)
   return send_file_chunk (g, 0, buf, 0);
 }
 
+static int send_file_chunk_shm (guestfs_h *g, int cancel, const char *buf, size_t buflen);
+static int send_file_chunk_sock (guestfs_h *g, int cancel, const char *buf, size_t buflen);
+
 static int
 send_file_chunk (guestfs_h *g, int cancel, const char *buf, size_t buflen)
+{
+  if (g->shmem)
+    return send_file_chunk_shm (g, cancel, buf, buflen);
+  else
+    return send_file_chunk_sock (g, cancel, buf, buflen);
+}
+
+static int
+send_file_chunk_shm (guestfs_h *g, int cancel, const char *buf, size_t buflen)
+{
+  uint32_t len;
+  ssize_t r;
+  guestfs_shm_chunk chunk;
+  XDR xdr;
+  char msg_out[64];
+  size_t msg_out_size;
+
+  /* Allocate the chunk buffer.  Don't use the stack to avoid
+   * excessive stack usage and unnecessary copies.
+   */
+  xdrmem_create (&xdr, msg_out + 4, sizeof (msg_out) - 4, XDR_ENCODE);
+
+  /* Serialize the chunk. */
+  chunk.cancel = cancel;
+  chunk.len = buflen;
+
+  if (!xdr_guestfs_shm_chunk (&xdr, &chunk)) {
+    error (g, _("xdr_guestfs_chunk failed (buf = %p, buflen = %zu)"),
+           buf, buflen);
+    xdr_destroy (&xdr);
+    return -1;
+  }
+
+  len = xdr_getpos (&xdr);
+  xdr_destroy (&xdr);
+
+  /* Reduce the size of the outgoing message buffer to the real length. */
+  msg_out_size = len + 4;
+
+  xdrmem_create (&xdr, msg_out, 4, XDR_ENCODE);
+  xdr_uint32_t (&xdr, &len);
+  xdr_destroy (&xdr);
+
+  /* Did the daemon send a cancellation message? */
+  r = check_daemon_socket (g);
+  if (r == -2) {
+    debug (g, "got daemon cancellation");
+    return -2;
+  }
+  if (r == -1)
+    return -1;
+  if (r == 0) {
+    guestfs___unexpected_close_error (g);
+    child_cleanup (g);
+    return -1;
+  }
+
+  /* Send the chunk. */
+  r = g->conn->ops->write_data (g, g->conn, msg_out, msg_out_size);
+  if (r == -1)
+    return -1;
+  if (r == 0) {
+    guestfs___unexpected_close_error (g);
+    child_cleanup (g);
+    return -1;
+  }
+
+  return 0;
+}
+
+static int
+send_file_chunk_sock (guestfs_h *g, int cancel, const char *buf, size_t buflen)
 {
   uint32_t len;
   ssize_t r;
@@ -768,11 +849,13 @@ guestfs___recv_file (guestfs_h *g, const char *filename)
   while ((r = receive_file_data (g, &buf)) > 0) {
     if (xwrite (fd, buf, r) == -1) {
       perrorf (g, "%s: write", filename);
-      free (buf);
+      if (!g->shmem)
+        free (buf);
       close (fd);
       goto cancel;
     }
-    free (buf);
+    if (!g->shmem)
+      free (buf);
 
     if (g->user_cancel) {
       close (fd);
@@ -820,8 +903,67 @@ guestfs___recv_file (guestfs_h *g, const char *filename)
 
 /* Receive a chunk of file data. */
 /* Returns -1 = error, 0 = EOF, > 0 = more data */
+static ssize_t receive_file_data_shm (guestfs_h *g, void **buf_r);
+static ssize_t receive_file_data_sock (guestfs_h *g, void **buf_r);
+
 static ssize_t
 receive_file_data (guestfs_h *g, void **buf_r)
+{
+  if (g->shmem)
+    return receive_file_data_shm (g, buf_r);
+  else
+    return receive_file_data_sock (g, buf_r);
+}
+
+static ssize_t
+receive_file_data_shm (guestfs_h* g, void **buf_r)
+{
+  int r;
+  CLEANUP_FREE void *buf = NULL;
+  uint32_t len;
+  XDR xdr;
+  guestfs_shm_chunk chunk;
+
+  r = guestfs___recv_from_daemon (g, &len, &buf);
+  if (r == -1)
+    return -1;
+
+  if (len == GUESTFS_LAUNCH_FLAG || len == GUESTFS_CANCEL_FLAG) {
+    error (g, _("receive_file_data: unexpected flag received when reading file chunks"));
+    return -1;
+  }
+
+  memset (&chunk, 0, sizeof chunk);
+
+  xdrmem_create (&xdr, buf, len, XDR_DECODE);
+  if (!xdr_guestfs_shm_chunk (&xdr, &chunk)) {
+    error (g, _("failed to parse file chunk"));
+    return -1;
+  }
+  xdr_destroy (&xdr);
+
+  if (chunk.cancel) {
+    if (g->user_cancel) {
+      error (g, _("operation cancelled by user"));
+      g->last_errnum = EINTR;
+    }
+    else
+      error (g, _("file receive cancelled by daemon"));
+    return -1;
+  }
+
+  if (chunk.len == 0) { /* end of transfer */
+    return 0;
+  }
+
+  if (buf_r) *buf_r = g->shmem->ops->get_ptr (g->shmem);
+
+  return chunk.len;
+
+}
+
+static ssize_t
+receive_file_data_sock (guestfs_h *g, void **buf_r)
 {
   int r;
   CLEANUP_FREE void *buf = NULL;

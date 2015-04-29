@@ -474,6 +474,9 @@ struct guestfs_h
   /*** Protocol. ***/
   struct connection *conn;              /* Connection to appliance. */
   int msg_next_serial;
+  
+    /*** Shared memory ***/
+  struct os_shared_memory *shmem;
 
 #if HAVE_FUSE
   /**** Used by the mount-local APIs. ****/

@@ -106,6 +106,7 @@ SOURCES = \
     match.c \
     osinfo.c \
     proto.c \
+    shared-memory.c \
     stringsbuf.c \
     tmpdirs.c \
     utils.c 

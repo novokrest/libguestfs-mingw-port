@@ -87,6 +87,8 @@ guestfs_create_flags (unsigned flags, ...)
   g->state = CONFIG;
 
   g->conn = NULL;
+  
+  g->shmem = NULL;
 
   guestfs___init_error_handler (g);
   g->abort_cb = abort;
@@ -436,6 +438,12 @@ shutdown_backend (guestfs_h *g, int check_for_errors)
   if (g->conn) {
     g->conn->ops->free_connection (g, g->conn);
     g->conn = NULL;
+  }
+  
+  /* Close shared memory */
+  if (g->shmem) {
+      os_shared_memory__free (g->shmem);
+      g->shmem = NULL;
   }
 
   guestfs___free_drives (g);

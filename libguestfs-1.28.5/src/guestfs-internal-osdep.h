@@ -7,6 +7,7 @@
 #include <os-socketpair.h>
 #include <os-pipe.h>
 #include <os-process.h>
+#include <os-shmem.h>
 
 #ifdef _WIN32
 
