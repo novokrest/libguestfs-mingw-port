@@ -15,3 +15,5 @@ dnl   MAGEIA=1     For Mageia.
 
 /lib/lsb/*
 /usr/share/augeas/lenses/*.aug
+/usr/lib/libaugeas*
+/usr/lib/libfa*
