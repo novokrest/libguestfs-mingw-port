@@ -148,11 +148,24 @@ check_not_directory (const char *filename, int fd)
 }
 
 /* Has one FileOut parameter. */
+static int do_download_with_buf (const char *filename, char *buf, uint64_t buflen);
+
 int
 do_download (const char *filename)
 {
+  if (enable_shm) {
+    return do_download_with_buf (filename, shmem->ops->get_ptr (shmem), shmem->ops->get_size (shmem));
+  }
+  else {
+    char buf[GUESTFS_MAX_CHUNK_SIZE];
+    return do_download_with_buf (filename, buf, sizeof buf);
+  }
+}
+
+static int
+do_download_with_buf (const char *filename, char *buf, uint64_t buflen)
+{
   int fd, r, is_dev;
-  char buf[GUESTFS_MAX_CHUNK_SIZE];
 
   is_dev = STRPREFIX (filename, "/dev/");
 
@@ -195,7 +208,7 @@ do_download (const char *filename)
    */
   reply (NULL, NULL);
 
-  while ((r = read (fd, buf, sizeof buf)) > 0) {
+  while ((r = read (fd, buf, buflen)) > 0) {
     if (send_file_write (buf, r) < 0) {
       close (fd);
       return -1;
@@ -225,11 +238,28 @@ do_download (const char *filename)
 }
 
 /* Has one FileOut parameter. */
+static int do_download_offset_with_buf (const char *filename, int64_t offset, int64_t size, 
+                                        char *buf, uint64_t buflen);
+
 int
 do_download_offset (const char *filename, int64_t offset, int64_t size)
 {
+  if (enable_shm) {
+    return do_download_offset_with_buf (filename, offset, size, 
+                                        shmem->ops->get_ptr (shmem), shmem->ops->get_size (shmem));
+  }
+  else {
+    char buf[GUESTFS_MAX_CHUNK_SIZE];
+    return do_download_offset_with_buf (filename, offset, size, 
+                                        buf, sizeof buf);
+  }
+}
+
+static int
+do_download_offset_with_buf (const char *filename, int64_t offset, int64_t size, 
+                             char *buf, uint64_t buflen)
+{
   int fd, r, is_dev;
-  char buf[GUESTFS_MAX_CHUNK_SIZE];
 
   if (offset < 0) {
     reply_with_perror ("%s: offset in file is negative", filename);
@@ -274,7 +304,7 @@ do_download_offset (const char *filename, int64_t offset, int64_t size)
   reply (NULL, NULL);
 
   while (usize > 0) {
-    r = read (fd, buf, usize > sizeof buf ? sizeof buf : usize);
+    r = read (fd, buf, usize > buflen ? buflen : usize);
     if (r == -1) {
       fprintf (stderr, "read: %s: %m\n", filename);
       send_file_end (1);        /* Cancel. */
@@ -309,3 +339,4 @@ do_download_offset (const char *filename, int64_t offset, int64_t size)
 
   return 0;
 }
+

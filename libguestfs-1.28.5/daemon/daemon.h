@@ -32,6 +32,8 @@
 
 #include "guestfs-internal-all.h"
 
+#include "guestfs-internal-osdep.h"
+
 /* Mountables */
 
 typedef struct {
@@ -44,6 +46,9 @@ typedef struct {
 extern int verbose;
 
 extern int enable_network;
+
+extern int enable_shm;
+extern struct os_shared_memory *shmem;
 
 extern int autosync_umount;
 

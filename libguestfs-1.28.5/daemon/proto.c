@@ -393,8 +393,111 @@ reply (xdrproc_t xdrp, char *ret)
 }
 
 /* Receive file chunks, repeatedly calling 'cb'. */
+static int receive_file_shm (receive_cb cb, void *opaque);
+static int receive_file_sock (receive_cb cb, void *opaque);
+
 int
 receive_file (receive_cb cb, void *opaque)
+{
+  if (enable_shm)
+    return receive_file_shm (cb, opaque);
+  else
+    return receive_file_sock (cb, opaque);
+}
+
+static int
+receive_file_shm (receive_cb cb, void *opaque)
+{
+  guestfs_shm_chunk chunk;
+  char lenbuf[4];
+  XDR xdr;
+  int r;
+  uint32_t len;
+
+  for (;;) {
+    CLEANUP_FREE char *buf = NULL;
+
+    if (verbose)
+      fprintf (stderr, "guestfsd: receive_file: reading length word\n");
+
+    /* Read the length word. */
+    if (xread (sock, lenbuf, 4) == -1)
+      exit (EXIT_FAILURE);
+
+    xdrmem_create (&xdr, lenbuf, 4, XDR_DECODE);
+    xdr_u_int (&xdr, &len);
+    xdr_destroy (&xdr);
+
+    if (len == GUESTFS_CANCEL_FLAG)
+      continue;			/* Just ignore it. */
+
+    if (len > GUESTFS_MESSAGE_MAX) {
+      fprintf (stderr, "guestfsd: incoming message is too long (%u bytes)\n",
+               len);
+      exit (EXIT_FAILURE);
+    }
+
+    buf = malloc (len);
+    if (!buf) {
+      perror ("malloc");
+      return -1;
+    }
+
+    if (xread (sock, buf, len) == -1)
+      exit (EXIT_FAILURE);
+
+    xdrmem_create (&xdr, buf, len, XDR_DECODE);
+    memset (&chunk, 0, sizeof chunk);
+    if (!xdr_guestfs_shm_chunk (&xdr, &chunk)) {
+      xdr_destroy (&xdr);
+      return -1;
+    }
+    xdr_destroy (&xdr);
+
+    if (verbose)
+      fprintf (stderr,
+               "guestfsd: receive_file: got chunk: cancel = 0x%x, len = %" PRIu64 ", buf = %p\n",
+               chunk.cancel, chunk.len, shmem->ops->get_ptr (shmem));
+
+    if (chunk.cancel != 0 && chunk.cancel != 1) {
+      fprintf (stderr,
+               "guestfsd: receive_file: chunk.cancel != [0|1] ... "
+               "continuing even though we have probably lost synchronization with the library\n");
+      return -1;
+    }
+
+    if (chunk.cancel) {
+      if (verbose)
+        fprintf (stderr,
+	  "guestfsd: receive_file: received cancellation from library\n");
+      xdr_free ((xdrproc_t) xdr_guestfs_shm_chunk, (char *) &chunk);
+      return -2;
+    }
+    if (chunk.len == 0) {
+      if (verbose)
+        fprintf (stderr,
+		 "guestfsd: receive_file: end of file, leaving function\n");
+      xdr_free ((xdrproc_t) xdr_guestfs_shm_chunk, (char *) &chunk);
+      return 0;			/* end of file */
+    }
+
+    /* Note that the callback can generate progress messages. */
+    if (cb)
+      r = cb (opaque, shmem->ops->get_ptr (shmem), chunk.len);
+    else
+      r = 0;
+
+    xdr_free ((xdrproc_t) xdr_guestfs_shm_chunk, (char *) &chunk);
+    if (r == -1) {		/* write error */
+      if (verbose)
+        fprintf (stderr, "guestfsd: receive_file: write error\n");
+      return -1;
+    }
+  }
+}
+
+static int
+receive_file_sock (receive_cb cb, void *opaque)
 {
   guestfs_chunk chunk;
   char lenbuf[4];
@@ -506,11 +609,52 @@ cancel_receive (void)
 }
 
 static int check_for_library_cancellation (void);
-static int send_chunk (const guestfs_chunk *);
+static int send_chunk (void *opaque);
 
 /* Also check if the library sends us a cancellation message. */
+static int send_file_write_shm (const void *buf, size_t len);
+static int send_file_write_sock (const void *buf, size_t len);
+
 int
 send_file_write (const void *buf, size_t len)
+{
+  if (enable_shm)
+    return send_file_write_shm (buf, len);
+  else
+    return send_file_write_sock (buf, len);
+}
+
+static int
+send_file_write_shm (const void *buf, size_t len)
+{
+  guestfs_shm_chunk chunk;
+  int cancel;
+
+  if (len > shmem->ops->get_size (shmem)) {
+    fprintf (stderr, "guestfsd: send_file_write: len (%zu) > shared memory size (%" PRIu64 ")\n", len, shmem->ops->get_size (shmem));
+    return -1;
+  }
+
+  cancel = check_for_library_cancellation ();
+
+  if (cancel) {
+    chunk.cancel = 1;
+    chunk.len = 0;
+  } else {
+    chunk.cancel = 0;
+    chunk.len = len;
+    /* buf is already shared memory */
+  }
+
+  if (send_chunk (&chunk) == -1)
+    return -1;
+
+  if (cancel) return -2;
+  return 0;
+}
+
+static int
+send_file_write_sock (const void *buf, size_t len)
 {
   guestfs_chunk chunk;
   int cancel;
@@ -580,8 +724,30 @@ check_for_library_cancellation (void)
   return 1;
 }
 
+static int send_file_end_shm (int cancel);
+static int send_file_end_sock (int cancel);
+
 int
 send_file_end (int cancel)
+{
+  if (enable_shm)
+    return send_file_end_shm (cancel);
+  else
+    return send_file_end_sock (cancel);
+}
+
+int
+send_file_end_shm (int cancel)
+{
+  guestfs_shm_chunk chunk;
+
+  chunk.cancel = cancel;
+  chunk.len = 0;
+  return send_chunk (&chunk);
+}
+
+int
+send_file_end_sock (int cancel)
 {
   guestfs_chunk chunk;
 
@@ -591,10 +757,54 @@ send_file_end (int cancel)
   return send_chunk (&chunk);
 }
 
-static int
-send_chunk (const guestfs_chunk *chunk)
+static int send_chunk_shm (const guestfs_shm_chunk *);
+static int send_chunk_sock (const guestfs_chunk *);
+
+int
+send_chunk (void *opaque)
 {
-  char buf[GUESTFS_MAX_CHUNK_SIZE + 48];
+  if (enable_shm)
+    return send_chunk_shm ((const guestfs_shm_chunk *) opaque);
+  else
+    return send_chunk_sock ((const guestfs_chunk *) opaque);
+}
+
+static int
+send_chunk_shm (const guestfs_shm_chunk *chunk)
+{
+  char buf[256];
+  char lenbuf[4];
+  XDR xdr;
+  uint32_t len;
+
+  xdrmem_create (&xdr, buf, sizeof buf, XDR_ENCODE);
+  if (!xdr_guestfs_shm_chunk (&xdr, (guestfs_shm_chunk *) chunk)) {
+    fprintf (stderr, "guestfsd: send_chunk_shm: failed to encode chunk\n");
+    xdr_destroy (&xdr);
+    return -1;
+  }
+
+  len = xdr_getpos (&xdr);
+  xdr_destroy (&xdr);
+
+  xdrmem_create (&xdr, lenbuf, 4, XDR_ENCODE);
+  xdr_u_int (&xdr, &len);
+  xdr_destroy (&xdr);
+
+  int err = (xwrite (sock, lenbuf, 4) == 0
+             && xwrite (sock, buf, len) == 0 ? 0 : -1);
+  if (err) {
+    fprintf (stderr, "guestfsd: send_chunk_shm: write failed\n");
+    exit (EXIT_FAILURE);
+  }
+
+  return err;
+}
+
+static int
+send_chunk_sock (const guestfs_chunk *chunk)
+{
+  char buf[GUESTFS_SHM_CHUNK_SIZE];
   char lenbuf[4];
   XDR xdr;
   uint32_t len;

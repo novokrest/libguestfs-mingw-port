@@ -82,6 +82,11 @@ static dev_t root_device = 0;
 int verbose = 0;
 int enable_network = 0;
 
+int enable_shm = 0;
+struct os_shared_memory *shmem = NULL;
+
+static uint64_t get_shm_size (const char *cmdline);
+
 static void makeraw (const char *channel, int fd);
 static int print_shell_quote (FILE *stream, const struct printf_info *info, const void *const *args);
 static int print_sysroot_shell_quote (FILE *stream, const struct printf_info *info, const void *const *args);
@@ -308,6 +313,18 @@ main (int argc, char *argv[])
    */
   if (STRPREFIX (channel, "/dev/ttyS"))
     makeraw (channel, sock);
+    
+  /* check if there is shared memroy for transmitting data */
+  enable_shm = (cmdline && strstr (cmdline, "guestfs_shm=1"))
+               && (stat ("/dev/uio0", &statbuf) == 0);
+  
+  if (enable_shm) {
+    shmem = os_shared_memory__new ("/dev/uio0", get_shm_size (cmdline));
+    if (!shmem) {
+      perror ("Failure to initialize shared memory");
+      exit (EXIT_FAILURE);
+    }
+  }
 
   /* cmdline, channel not used after this point */
   free (cmdline);
@@ -342,6 +359,11 @@ main (int argc, char *argv[])
 
   /* Enter the main loop, reading and performing actions. */
   main_loop (sock);
+  
+  if (enable_shm) {
+    shmem->ops->close (shmem);
+    os_shared_memory__free (shmem);
+  }
 
   exit (EXIT_SUCCESS);
 }
@@ -434,6 +456,27 @@ is_root_device (const char *device)
   }
 
   return is_root_device_stat (&statbuf);
+}
+
+/* Return size of shared memory in bytes */
+static uint64_t
+get_shm_size (const char *cmdline)
+{
+  assert (enable_shm != 0 && cmdline != NULL);
+  
+  int sizeM;
+  char *p;
+  
+  p = strstr (cmdline, "guestfs_shm_size=");
+  if (p == NULL) {
+    perror ("Failure to determine size of shared memory");
+    return 0;
+  }
+  
+  p += 17;
+  sizeM = atoi (p);
+  
+  return (uint64_t) sizeM * 1024 * 1024;
 }
 
 /* Turn "/path" into "/sysroot/path".
@@ -1532,3 +1575,5 @@ cleanup_aug_close (void *ptr)
   if (aug != NULL)
     aug_close (aug);
 }
+
+
