@@ -637,7 +637,7 @@ launch_direct (guestfs_h *g, void *datav, const char *arg)
   /* Set up ivshmem device */
   if (g->shmem) {
     ADD_CMDLINE ("-device");
-    ADD_CMDLINE_PRINTF("ivshmem,size=%"PRIu64"M,shm=%s", g->shmem->ops->get_size (g->shmem), g->shmem->ops->get_name (g->shmem));
+    ADD_CMDLINE_PRINTF("ivshmem,size=%"PRIu64"M,shm=%s", g->shmem->ops->get_size (g->shmem) >> 20, g->shmem->ops->get_name (g->shmem));
   }
 
   ADD_CMDLINE ("-append");

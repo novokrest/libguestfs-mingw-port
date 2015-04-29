@@ -333,7 +333,7 @@ guestfs___appliance_command_line (guestfs_h *g, const char *appliance_dev,
   }
 
   if (g->shmem)
-    snprintf (shmem, sizeof shmem, " guestfs_shm=1 guestfs_shm_size=%d", g->shmem->ops->get_size (g->shmem));
+    snprintf (shmem, sizeof shmem, " guestfs_shm=1 guestfs_shm_size=%d", g->shmem->ops->get_size (g->shmem) >> 20);
   
   ret = safe_asprintf
     (g,
