@@ -134,6 +134,8 @@ if ! grep -sq guestfs_rescue=1 /proc/cmdline; then
   fi
 
   # Run guestfsd, under valgrind if asked.
+  modprobe uio_ivshmem
+  echo "Modules loaded"
   $vg guestfsd
   if [ $? -eq 119 ]; then
       echo "DAEMON VALGRIND FAILED"
