@@ -1,4 +1,23 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
 #include "os-shmem.h"
+
+static char *
+GetSharedMemoryName (const char *name)
+{
+  char *shmname;
+  int len;
+  
+  len = strlen (OS_SHARED_MEMORY_PREFIX) + strlen (name);
+  shmname = malloc (len + 1);
+  snprintf (shmname, len + 1, "%s%s", OS_SHARED_MEMORY_PREFIX, name);
+  shmname[len] = '\0';
+  
+  return shmname;
+}
+
 
 #ifdef _WIN32
 
@@ -7,7 +26,7 @@
 
 struct windows_shared_memory
 {
-  struct os_shared_memory_ops *ops;
+  const struct os_shared_memory_ops *ops;
 
   const char *name;
   uint64_t size;
@@ -23,21 +42,20 @@ windows_shared_memory__open (struct os_shared_memory *shmemv)
 
   HANDLE h;
   void *ptr;
-  char sGlobalName[MAX_PATH];
+  char *shmname;
 
-  sprintf (sGlobalName, "Global\\%s", shmem->name);
+  shmname = GetSharedMemoryName (shmem->name);
 
   h = OpenFileMapping (
     FILE_MAP_ALL_ACCESS,
     FALSE,
-    sGlobalName);
+    shmname);
 
   if (h == NULL) {
     return -1;
   }
 
-  ptr = MapViewOfFile (
-    h,
+  ptr = MapViewOfFile ( h,
     FILE_MAP_ALL_ACCESS,
     0,
     0,
@@ -169,7 +187,7 @@ os_shared_memory__free (struct os_shared_memory *shmemv)
 
 struct posix_shared_memory
 {
-  struct os_shared_memory_ops *ops;
+  const struct os_shared_memory_ops *ops;
 
   const char *name;
   uint64_t size;
@@ -186,7 +204,7 @@ posix_shared_memory__open (struct os_shared_memory *shmemv)
   void *map = NULL;
   struct stat st;
 
-  if ((fd = open (shmem->name, O_RDWR)) < 0) {
+  if ((fd = shm_open (shmem->name, O_RDWR, (mode_t) 0666)) < 0) {
     return -1;
   }
 
@@ -204,7 +222,7 @@ posix_shared_memory__open (struct os_shared_memory *shmemv)
   }
 #endif
 
-  map = mmap (0, shmem->size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 1 * getpagesize());
+  map = mmap (0, shmem->size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
   if (map == MAP_FAILED) {
     close (fd);
     return -1;
@@ -269,14 +287,14 @@ posix_shared_memory__print(struct os_shared_memory *shmemv, int n)
   if (!buf)
     return;
 
-  memcpy (buf, (char *) shmem->ptr, n);
+  memcpy (buf, (char *) (shmem->ptr), n);
   buf[n] = '\0';
 
   printf ("shared memory info:\n"
           "  name: %s\n"
           "  size: %" PRIu64 "\n"
-          "  first %d bytes: %s\n",
-          shmem->name, shmem->size, n, buf);
+          "  buf: %s\n",
+          shmem->name, shmem->size, buf);
 
   free (buf);
 }
@@ -299,7 +317,7 @@ os_shared_memory__new (const char *name, uint64_t size)
     return NULL;
   }
 
-  shmem = malloc (sizeof(struct posix_shared_memory));
+  shmem = malloc (sizeof (struct posix_shared_memory));
   if (!shmem) {
     return NULL;
   }
@@ -310,6 +328,7 @@ os_shared_memory__new (const char *name, uint64_t size)
   shmem->fd = -1;
   shmem->ptr = NULL;
 
+  perror ("os-shmem: Before return STAMP013\n");
   return (struct os_shared_memory *) shmem;
 }
 

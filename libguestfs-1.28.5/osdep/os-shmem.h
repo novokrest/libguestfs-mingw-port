@@ -4,6 +4,12 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#ifdef _WIN32
+#define OS_SHARED_MEMORY_PREFIX "Global\\"
+#else
+#define OS_SHARED_MEMORY_PREFIX "/dev/shm/"
+#endif
+
 struct os_shared_memory;
 
 struct os_shared_memory_ops
@@ -18,7 +24,7 @@ struct os_shared_memory_ops
 
 struct os_shared_memory
 {
-    struct os_shared_memory_ops *ops;
+    const struct os_shared_memory_ops *ops;
 };
 
 extern struct os_shared_memory *os_shared_memory__new (const char *name, uint64_t size);

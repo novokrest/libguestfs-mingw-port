@@ -7,7 +7,7 @@ CC = gcc -std=gnu99
 WARN_CFLAGS = -Werror
 CFLAGS = $(WARN_CFLAGS)
 LDFLAGS = 
-LIBS = 
+LIBS = -lrt
 
 HEADERS = \
     os-error.h \
