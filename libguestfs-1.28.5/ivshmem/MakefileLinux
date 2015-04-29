@@ -17,7 +17,7 @@ uninstall:
 
 clean:
 	$(MAKE) -C $(uio_dir) clean
-	rm *~
+	rm -f *~
 
 .PHONY: all uio install uninstall clean
 

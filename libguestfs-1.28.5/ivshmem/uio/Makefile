@@ -33,7 +33,7 @@ uninstall:
 
 clean:
 	rm -f *~ *.o uio_ivshmem.mod.* Module.symvers modules.order .uio_ivshmem*
-	rm -r .tmp_versions
+	rm -rf .tmp_versions
 
 .PHONY: all default install uninstall clean
 
