@@ -11,8 +11,6 @@ init_wsa (void)
   if (WSAStartup(MAKEWORD(2, 2), &wsData) != 0) {
     exit (EXIT_FAILURE);
   }
-
-  return 0;
 }
 
 static void
