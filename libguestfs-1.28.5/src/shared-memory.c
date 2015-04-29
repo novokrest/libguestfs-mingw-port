@@ -19,18 +19,14 @@
 #define GUESTFS_SHARED_MEMORY_DEFAULT_NAME "guestfs_shm"
 #endif /* _WIN32 */
 
-static int
-is_power_of_2 (int v)
-{
-  return v && (v & (v - 1)) == 0;
-}
+static int is_power_of_2 (int v);
 
 int
 guestfs__set_shared_memory (guestfs_h *g, int enable,
                             const struct guestfs_set_shared_memory_argv *optargs)
 {
   int size;
-  const char *name;
+  const char *name, fullname;
 
   if (g->shmem) {
     os_shared_memory__free (g->shmem);
@@ -51,7 +47,7 @@ guestfs__set_shared_memory (guestfs_h *g, int enable,
   size = optargs->bitmask & GUESTFS_SET_SHARED_MEMORY_SIZE_BITMASK ? optargs->size : GUESTFS_SHARED_MEMORY_DEFAULT_SIZE;
   name = optargs->bitmask & GUESTFS_SET_SHARED_MEMORY_NAME_BITMASK ? optargs->name : GUESTFS_SHARED_MEMORY_DEFAULT_NAME;
 
-  g->shmem = os_shared_memory__new (name, size);
+  g->shmem = os_shared_memory__new (name, size << 20);
 
   return 0;
 }
@@ -60,5 +56,11 @@ int
 guestfs__get_shared_memory (guestfs_h *g)
 {
   return g->shmem != NULL;
+}
+
+static int
+is_power_of_2 (int v)
+{
+  return v && (v & (v - 1)) == 0;
 }
 
