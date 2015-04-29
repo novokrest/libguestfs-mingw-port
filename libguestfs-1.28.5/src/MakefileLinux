@@ -134,7 +134,8 @@ LIBS = \
     $(LIBINTL_LIBS) \
     $(ICONV_LIBS) \
     $(OSDEP_LIBS) \
-    $(GNULIB_LIBS)
+    $(GNULIB_LIBS) \
+    -lrt
 
 OBJECTS = $(SOURCES:.c=.o)
 
