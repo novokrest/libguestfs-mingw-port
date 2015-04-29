@@ -5,11 +5,12 @@ gnulib_dir = $(top_srcdir)/gnulib/lib
 osdep_dir = $(top_srcdir)/osdep
 generator_dir = $(top_srcdir)/generator
 daemon_dir = $(top_srcdir)/daemon
+ivshmem_dir = $(top_srcdir)/ivshmem
 appliance_dir = $(top_srcdir)/appliance
 
 MAKEFILE_NAME = MakefileLinux
 
-all: gnulib osdep generator daemon appliance
+all: gnulib osdep generator daemon appliance ivshmem
 
 gnulib:
 	$(MAKE) -f $(MAKEFILE_NAME) -C $(gnulib_dir)
@@ -23,7 +24,10 @@ generator:
 daemon: generator
 	$(MAKE) -f $(MAKEFILE_NAME) -C $(daemon_dir)
 
-appliance: daemon
+ivshmem:
+	$(MAKE) -f $(MAKEFILE_NAME) -C $(ivshmem_dir)
+
+appliance: daemon ivshmem
 	$(MAKE) -f $(MAKEFILE_NAME) -C $(appliance_dir)
 
 clean:
@@ -31,7 +35,8 @@ clean:
 	$(MAKE) clean -f $(MAKEFILE_NAME) -C $(osdep_dir) 
 	$(MAKE) clean -f $(MAKEFILE_NAME) -C $(generator_dir)
 	$(MAKE) clean -f $(MAKEFILE_NAME) -C $(daemon_dir)
+	$(MAKE) clean -f $(MAKEFILE_NAME) -C $(ivshmem_dir)
 	$(MAKE) clean -f $(MAKEFILE_NAME) -C $(appliance_dir)
 
-.PHONY: all clean gnulib osdep generator daemon appliance
+.PHONY: all clean gnulib osdep generator daemon ivshmem appliance
 
