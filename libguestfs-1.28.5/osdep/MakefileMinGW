@@ -15,6 +15,7 @@ HEADERS = \
     os-fcntl.h \
     os-pipe.h \
     os-process.h \
+    os-shmem.h \
     os-socket.h \
     os-socketpair.h
 
@@ -22,6 +23,7 @@ SOURCES = \
     os-fcntl.c \
     os-pipe.c \
     os-process.c \
+    os-shmem.c \
     os-socket.c \
     os-socketpair.c
 
