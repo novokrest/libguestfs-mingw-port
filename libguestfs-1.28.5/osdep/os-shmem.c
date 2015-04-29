@@ -2,6 +2,7 @@
 
 #ifdef _WIN32
 
+#include <stdio.h>
 #include <windows.h>
 
 struct windows_shared_memory
@@ -24,7 +25,7 @@ windows_shared_memory__open (struct os_shared_memory *shmemv)
   void *ptr;
   char sGlobalName[MAX_PATH];
 
-  sprintf (sGlobalName, "Global\\%s", shm->name);
+  sprintf (sGlobalName, "Global\\%s", shmem->name);
 
   h = OpenFileMapping (
     FILE_MAP_ALL_ACCESS,
@@ -46,8 +47,8 @@ windows_shared_memory__open (struct os_shared_memory *shmemv)
     return -1;
   }
 
-  shm->h = h;
-  shm->ptr = ptr;
+  shmem->h = h;
+  shmem->ptr = ptr;
 
   return 0;
 }
@@ -57,11 +58,11 @@ windows_shared_memory__close (struct os_shared_memory *shmemv)
 {
   struct windows_shared_memory *shmem = (struct windows_shared_memory *) shmemv;
   
-  if (!UnmapViewOfFile (shm->ptr) || !CloseHandle (shm->h))
+  if (!UnmapViewOfFile (shmem->ptr) || !CloseHandle (shmem->h))
     return -1;
 
-  shm->h = NULL;
-  shm->ptr = NULL;
+  shmem->h = NULL;
+  shmem->ptr = NULL;
 
   return 0;
 }
@@ -122,7 +123,7 @@ static struct os_shared_memory_ops ops = {
 };
 
 struct os_shared_memory *
-new_shared_memory (const char *name, uint64_t size)
+os_shared_memory__new (const char *name, uint64_t size)
 {
   struct windows_shared_memory *shmem;
 
@@ -138,18 +139,18 @@ new_shared_memory (const char *name, uint64_t size)
   shmem->ops = &ops;
   shmem->name = strdup (name);
   shmem->size = size;
-  shmem->h = -1;
+  shmem->h = NULL;
   shmem->ptr = NULL;
 
   return (struct os_shared_memory *) shmem;
 }
 
 void
-free_shared_memory (struct os_shared_memory *shmemv)
+os_shared_memory__free (struct os_shared_memory *shmemv)
 {
   struct windows_shared_memory *shmem = (struct windows_shared_memory *) shmemv;
 
-    free (shmem->name);
+    free ((char *) shmem->name);
     free (shmem);
 }
 
