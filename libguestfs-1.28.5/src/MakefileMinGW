@@ -117,6 +117,7 @@ SOURCES = \
     osinfo.c \
     proto.c \
     stringsbuf.c \
+    shared-memory.c \
     tmpdirs.c \
     utils.c \
     wsa.c    
