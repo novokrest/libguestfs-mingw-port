@@ -272,7 +272,7 @@ launch_direct (guestfs_h *g, void *datav, const char *arg)
   os_socketpair_end_t console_sock = OS_SOCKETPAIR_END_INVALID_VALUE;
   int r;
   int flags;
-  struct os_socketpair sp;
+  struct os_socketpair sp = OS_SOCKETPAIR__INIT;
   struct os_socket_info guestfsd_sock;
   char sock_info_buf[256];
   CLEANUP_FREE char *kernel = NULL, *dtb = NULL,
@@ -633,12 +633,14 @@ launch_direct (guestfs_h *g, void *datav, const char *arg)
     ADD_CMDLINE ("-device");
     ADD_CMDLINE (VIRTIO_NET ",netdev=usernet");
   }
-  
+
+#ifdef GUESTFS_SHMEM
   /* Set up ivshmem device */
   if (g->shmem) {
     ADD_CMDLINE ("-device");
     ADD_CMDLINE_PRINTF("ivshmem,size=%"PRIu64"M,shm=%s", g->shmem->ops->get_size (g->shmem) >> 20, g->shmem->ops->get_name (g->shmem));
   }
+#endif /* GUESTFS_SHMEM */
 
   ADD_CMDLINE ("-append");
   flags = 0;
@@ -744,10 +746,12 @@ launch_direct (guestfs_h *g, void *datav, const char *arg)
   if (has_appliance_drive)
     guestfs___add_dummy_appliance_drive (g);
 
+#ifdef GUESTFS_SHMEM
   if (g->shmem && g->shmem->ops->open (g->shmem) == -1) {
     error (g, _("failure to open shared memory"));
     goto cleanup1;
   }
+#endif /* GUESTFS_SHMEM */
 
   return 0;
 

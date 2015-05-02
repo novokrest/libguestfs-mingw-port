@@ -339,16 +339,20 @@ guestfs___send_file (guestfs_h *g, const char *filename)
 
   /* Send file in chunked encoding. */
   while (!g->user_cancel) {
+#ifdef GUESTFS_SHMEM
     if (g->shmem)
       r = read (fd, g->shmem->ops->get_ptr (g->shmem), g->shmem->ops->get_size (g->shmem));
     else
+#endif /* GUESTFS_SHMEM */
       r = read (fd, buf, sizeof buf);
     if (r == -1 && (errno == EINTR || errno == EAGAIN))
       continue;
     if (r <= 0) break;
+#ifdef GUESTFS_SHMEM
     if (g->shmem)
       err = send_file_data (g, NULL, r);
     else
+#endif /* GUESTFS_SHMEM */
       err = send_file_data (g, buf, r);
     if (err < 0) {
       if (err == -2)		/* daemon sent cancellation */
@@ -414,18 +418,23 @@ send_file_complete (guestfs_h *g)
   return send_file_chunk (g, 0, buf, 0);
 }
 
+#ifdef GUESTFS_SHMEM
 static int send_file_chunk_shm (guestfs_h *g, int cancel, const char *buf, size_t buflen);
+#endif /* GUESTFS_SHMEM */
 static int send_file_chunk_sock (guestfs_h *g, int cancel, const char *buf, size_t buflen);
 
 static int
 send_file_chunk (guestfs_h *g, int cancel, const char *buf, size_t buflen)
 {
+#ifdef GUESTFS_SHMEM
   if (g->shmem)
     return send_file_chunk_shm (g, cancel, buf, buflen);
-  else
-    return send_file_chunk_sock (g, cancel, buf, buflen);
+#endif /* GUESTFS_SHMEM */
+
+  return send_file_chunk_sock (g, cancel, buf, buflen);
 }
 
+#ifdef GUESTFS_SHMEM
 static int
 send_file_chunk_shm (guestfs_h *g, int cancel, const char *buf, size_t buflen)
 {
@@ -488,6 +497,7 @@ send_file_chunk_shm (guestfs_h *g, int cancel, const char *buf, size_t buflen)
 
   return 0;
 }
+#endif /* GUESTFS_SHMEM */
 
 static int
 send_file_chunk_sock (guestfs_h *g, int cancel, const char *buf, size_t buflen)
@@ -849,12 +859,16 @@ guestfs___recv_file (guestfs_h *g, const char *filename)
   while ((r = receive_file_data (g, &buf)) > 0) {
     if (xwrite (fd, buf, r) == -1) {
       perrorf (g, "%s: write", filename);
+#ifdef GUESTFS_SHMEM
       if (!g->shmem)
+#endif /* GUESTFS_SHMEM */
         free (buf);
       close (fd);
       goto cancel;
     }
+#ifdef GUESTFS_SHMEM
     if (!g->shmem)
+#endif /* GUESTFS_SHMEM */
       free (buf);
 
     if (g->user_cancel) {
@@ -903,18 +917,23 @@ guestfs___recv_file (guestfs_h *g, const char *filename)
 
 /* Receive a chunk of file data. */
 /* Returns -1 = error, 0 = EOF, > 0 = more data */
+#ifdef GUESTFS_SHMEM
 static ssize_t receive_file_data_shm (guestfs_h *g, void **buf_r);
+#endif /* GUESTFS_SHMEM */
 static ssize_t receive_file_data_sock (guestfs_h *g, void **buf_r);
 
 static ssize_t
 receive_file_data (guestfs_h *g, void **buf_r)
 {
+#ifdef GUESTFS_SHMEM
   if (g->shmem)
     return receive_file_data_shm (g, buf_r);
-  else
-    return receive_file_data_sock (g, buf_r);
+#endif /* GUESTFS_SHMEM */
+
+  return receive_file_data_sock (g, buf_r);
 }
 
+#ifdef GUESTFS_SHMEM
 static ssize_t
 receive_file_data_shm (guestfs_h* g, void **buf_r)
 {
@@ -961,6 +980,7 @@ receive_file_data_shm (guestfs_h* g, void **buf_r)
   return chunk.len;
 
 }
+#endif /* GUESTFS_SHMEM */
 
 static ssize_t
 receive_file_data_sock (guestfs_h *g, void **buf_r)

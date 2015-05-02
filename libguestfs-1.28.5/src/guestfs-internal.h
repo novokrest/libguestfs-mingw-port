@@ -476,7 +476,9 @@ struct guestfs_h
   int msg_next_serial;
   
     /*** Shared memory ***/
+#ifdef GUESTFS_SHMEM
   struct os_shared_memory *shmem;
+#endif /* GUESTFS_SHMEM */
 
 #if HAVE_FUSE
   /**** Used by the mount-local APIs. ****/
