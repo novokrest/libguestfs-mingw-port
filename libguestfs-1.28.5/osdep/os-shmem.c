@@ -4,6 +4,11 @@
 
 #include "os-shmem.h"
 
+#ifdef _WIN32
+
+#include <stdio.h>
+#include <windows.h>
+
 static char *
 GetSharedMemoryName (const char *name)
 {
@@ -17,12 +22,6 @@ GetSharedMemoryName (const char *name)
   
   return shmname;
 }
-
-
-#ifdef _WIN32
-
-#include <stdio.h>
-#include <windows.h>
 
 struct windows_shared_memory
 {
@@ -199,7 +198,6 @@ static int
 posix_shared_memory__open (struct os_shared_memory *shmemv)
 {
   struct posix_shared_memory *shmem = (struct posix_shared_memory *) shmemv;
-  uint64_t size;
   int fd;
   void *map = NULL;
   struct stat st;
@@ -214,6 +212,7 @@ posix_shared_memory__open (struct os_shared_memory *shmemv)
   }
 
 #if 0
+  uint64_t size;
   size = st.st_size;
   shmem->size = shmem->size < size ? shmem->size : size;
   if (ftruncate (shmem->size) == -1) {
