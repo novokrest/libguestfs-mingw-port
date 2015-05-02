@@ -9,11 +9,13 @@
 
 #define os_socketpair_end_t HANDLE
 #define OS_SOCKETPAIR_END_INVALID_VALUE NULL
+#define OS_SOCKETPAIR__INIT { .left = NULL, .right = NULL }
 
 #else
 
 #define os_socketpair_end_t int
 #define OS_SOCKETPAIR_END_INVALID_VALUE -1
+#define OS_SOCKETPAIR__INIT { .left = -1, .right = -1 }
 
 #endif /* _WIN32 */
 
