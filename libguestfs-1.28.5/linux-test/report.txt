@@ -1,0 +1,411 @@
+=======================
+
+GUESTFS_TEST
+
+[ 0.000000 ]: guestfs handle has been created
+[ 9.000000 ]: guestfs has been launched
+[ 18.000000 ]: disk is mounted
+[ 18.000000 ]: start reading files
+[ 18.000000 ]: finish reading files from guest
+[ 18.000000 ]: start downloading files from guest
+[ 59.000000 ]: downloaded: from /home/novokrestdeb/subdisk.img to subdisk1.img
+[ 60.000000 ]: downloaded: from /home/novokrestdeb/video.mp4 to video1.mp4
+[ 60.000000 ]: finish downloading files from guest
+[ 60.000000 ]: start writing files to guest
+[ 60.000000 ]: finish writing files to guest
+[ 60.000000 ]: guestfs has been closed
+
+=======================
+
+=======================
+
+GUESTFS_TEST
+
+[ 0.000000 ]: guestfs handle has been created
+[ 9.000000 ]: guestfs has been launched
+[ 16.000000 ]: disk is mounted
+[ 16.000000 ]: start reading files
+[ 16.000000 ]: finish reading files from guest
+[ 16.000000 ]: start downloading files from guest
+[ 56.000000 ]: downloaded: from /home/novokrestdeb/subdisk.img to subdisk1.img
+[ 57.000000 ]: downloaded: from /home/novokrestdeb/video.mp4 to video1.mp4
+[ 57.000000 ]: finish downloading files from guest
+[ 57.000000 ]: start writing files to guest
+[ 57.000000 ]: finish writing files to guest
+[ 58.000000 ]: guestfs has been closed
+
+=======================
+
+=======================
+
+GUESTFS_TEST
+
+[ 0.000000 ]: guestfs handle has been created
+[ 8.000000 ]: guestfs has been launched
+[ 15.000000 ]: disk is mounted
+[ 15.000000 ]: start reading files
+[ 15.000000 ]: finish reading files from guest
+[ 15.000000 ]: start downloading files from guest
+[ 56.000000 ]: downloaded: from /home/novokrestdeb/subdisk.img to subdisk1.img
+[ 57.000000 ]: downloaded: from /home/novokrestdeb/video.mp4 to video1.mp4
+[ 57.000000 ]: finish downloading files from guest
+[ 57.000000 ]: start writing files to guest
+[ 57.000000 ]: finish writing files to guest
+[ 58.000000 ]: guestfs has been closed
+
+=======================
+
+=======================
+
+GUESTFS_TEST
+
+[ 0.000000 ]: guestfs handle has been created
+[ 9.000000 ]: guestfs has been launched
+[ 16.000000 ]: disk is mounted
+[ 16.000000 ]: start reading files
+[ 16.000000 ]: finish reading files from guest
+[ 16.000000 ]: start downloading files from guest
+[ 57.000000 ]: downloaded: from /home/novokrestdeb/subdisk.img to subdisk1.img
+[ 58.000000 ]: downloaded: from /home/novokrestdeb/video.mp4 to video1.mp4
+[ 58.000000 ]: finish downloading files from guest
+[ 58.000000 ]: start writing files to guest
+[ 58.000000 ]: finish writing files to guest
+[ 58.000000 ]: guestfs has been closed
+
+=======================
+
+=======================
+
+GUESTFS_TEST
+
+[ 0.000000 ]: guestfs handle has been created
+[ 10.000000 ]: guestfs has been launched
+[ 17.000000 ]: disk is mounted
+[ 17.000000 ]: start reading files
+[ 17.000000 ]: finish reading files from guest
+[ 17.000000 ]: start downloading files from guest
+[ 18.000000 ]: downloaded: from /home/novokrestdeb/subdisk.img to subdisk1.img
+[ 18.000000 ]: downloaded: from /home/novokrestdeb/video.mp4 to video1.mp4
+[ 18.000000 ]: finish downloading files from guest
+[ 18.000000 ]: start writing files to guest
+[ 18.000000 ]: finish writing files to guest
+[ 18.000000 ]: guestfs has been closed
+
+=======================
+
+=======================
+
+GUESTFS_TEST
+
+[ 0.000000 ]: guestfs handle has been created
+[ 8.000000 ]: guestfs has been launched
+[ 16.000000 ]: disk is mounted
+[ 16.000000 ]: start reading files
+[ 16.000000 ]: finish reading files from guest
+[ 16.000000 ]: start downloading files from guest
+[ 26.000000 ]: downloaded: from /home/novokrestdeb/subdisk.img to subdisk1.img
+[ 26.000000 ]: downloaded: from /home/novokrestdeb/video.mp4 to video1.mp4
+[ 26.000000 ]: finish downloading files from guest
+[ 26.000000 ]: start writing files to guest
+[ 26.000000 ]: finish writing files to guest
+[ 27.000000 ]: guestfs has been closed
+
+=======================
+
+=======================
+
+GUESTFS_TEST
+
+[ 0.000000 ]: guestfs handle has been created
+[ 8.000000 ]: guestfs has been launched
+[ 15.000000 ]: disk is mounted
+[ 15.000000 ]: start reading files
+[ 15.000000 ]: finish reading files from guest
+[ 15.000000 ]: start downloading files from guest
+[ 24.000000 ]: downloaded: from /home/novokrestdeb/subdisk.img to subdisk1.img
+[ 25.000000 ]: downloaded: from /home/novokrestdeb/video.mp4 to video1.mp4
+[ 25.000000 ]: finish downloading files from guest
+[ 25.000000 ]: start writing files to guest
+[ 50.000000 ]: uploaded: from subdisk.img to /home/novokrestdeb/subdisk.img
+[ 50.000000 ]: uploaded: from video.mp4 to /home/novokrestdeb/video.mp4
+[ 50.000000 ]: finish writing files to guest
+[ 51.000000 ]: guestfs has been closed
+
+=======================
+
+=======================
+
+BIG_DOWNLOAD_TEST
+
+[ 0.000000 ]: guestfs handle has been created
+[ 8.000000 ]: guestfs has been launched
+[ 16.000000 ]: disk is mounted
+[ 16.000000 ]: start reading files
+[ 16.000000 ]: finish reading files from guest
+[ 16.000000 ]: start downloading files from guest
+[ 16.000000 ]: downloaded: from /home/novokrestdeb/video.mp4 to video.mp4
+[ 16.000000 ]: finish downloading files from guest
+[ 16.000000 ]: start writing files to guest
+[ 16.000000 ]: finish writing files to guest
+[ 16.000000 ]: guestfs has been closed
+
+=======================
+
+=======================
+
+BIG_UPLOAD_TEST
+
+[ 0.000000 ]: guestfs handle has been created
+[ 8.000000 ]: guestfs has been launched
+[ 16.000000 ]: disk is mounted
+[ 16.000000 ]: start reading files
+[ 16.000000 ]: finish reading files from guest
+[ 16.000000 ]: start downloading files from guest
+[ 16.000000 ]: finish downloading files from guest
+[ 16.000000 ]: start writing files to guest
+[ 16.000000 ]: uploaded: from video.mp4 to /home/novokrestdeb/video.mp4
+[ 16.000000 ]: finish writing files to guest
+[ 16.000000 ]: guestfs has been closed
+
+=======================
+
+=======================
+
+BIG_DOWNLOAD_TEST
+
+[ 0.000000 ]: guestfs handle has been created
+[ 9.000000 ]: guestfs has been launched
+[ 17.000000 ]: disk is mounted
+[ 17.000000 ]: start reading files
+[ 17.000000 ]: finish reading files from guest
+[ 17.000000 ]: start downloading files from guest
+[ 17.000000 ]: downloaded: from /home/novokrestdeb/video.mp4 to video.mp4
+[ 17.000000 ]: finish downloading files from guest
+[ 17.000000 ]: start writing files to guest
+[ 17.000000 ]: finish writing files to guest
+[ 17.000000 ]: guestfs has been closed
+
+=======================
+
+=======================
+
+BIG_DOWNLOAD_TEST
+
+[ 0.000000 ]: guestfs handle has been created
+[ 8.000000 ]: guestfs has been launched
+[ 15.000000 ]: disk is mounted
+[ 15.000000 ]: start reading files
+[ 15.000000 ]: finish reading files from guest
+[ 15.000000 ]: start downloading files from guest
+[ 16.000000 ]: downloaded: from /home/novokrestdeb/video.mp4 to video.mp4
+[ 16.000000 ]: finish downloading files from guest
+[ 16.000000 ]: start writing files to guest
+[ 16.000000 ]: finish writing files to guest
+[ 16.000000 ]: guestfs has been closed
+
+=======================
+
+=======================
+
+BIG_UPLOAD_TEST
+
+[ 0.000000 ]: guestfs handle has been created
+[ 8.000000 ]: guestfs has been launched
+[ 15.000000 ]: disk is mounted
+[ 15.000000 ]: start reading files
+[ 15.000000 ]: finish reading files from guest
+[ 15.000000 ]: start downloading files from guest
+[ 15.000000 ]: finish downloading files from guest
+[ 15.000000 ]: start writing files to guest
+[ 18.000000 ]: uploaded: from video.mp4 to /home/novokrestdeb/video.mp4
+[ 18.000000 ]: finish writing files to guest
+[ 18.000000 ]: guestfs has been closed
+
+=======================
+
+=======================
+
+BIG_DOWNLOAD_TEST
+
+[ 0.000000 ]: guestfs handle has been created
+[ 8.000000 ]: guestfs has been launched
+[ 15.000000 ]: disk is mounted
+[ 15.000000 ]: start reading files
+[ 15.000000 ]: finish reading files from guest
+[ 15.000000 ]: start downloading files from guest
+[ 16.000000 ]: downloaded: from /home/novokrestdeb/video.mp4 to video.mp4
+[ 16.000000 ]: finish downloading files from guest
+[ 16.000000 ]: start writing files to guest
+[ 16.000000 ]: finish writing files to guest
+[ 16.000000 ]: guestfs has been closed
+
+=======================
+
+=======================
+
+BIG_DOWNLOAD_TEST
+
+[ 0.000000 ]: guestfs handle has been created
+[ 9.000000 ]: guestfs has been launched
+[ 16.000000 ]: disk is mounted
+[ 16.000000 ]: start reading files
+[ 16.000000 ]: finish reading files from guest
+[ 16.000000 ]: start downloading files from guest
+[ 17.000000 ]: downloaded: from /home/novokrestdeb/video.mp4 to video.mp4
+[ 17.000000 ]: finish downloading files from guest
+[ 17.000000 ]: start writing files to guest
+[ 17.000000 ]: finish writing files to guest
+[ 17.000000 ]: guestfs has been closed
+
+=======================
+
+=======================
+
+BIG_UPLOAD_TEST
+
+[ 0.000000 ]: guestfs handle has been created
+[ 9.000000 ]: guestfs has been launched
+[ 16.000000 ]: disk is mounted
+[ 16.000000 ]: start reading files
+[ 16.000000 ]: finish reading files from guest
+[ 16.000000 ]: start downloading files from guest
+[ 16.000000 ]: finish downloading files from guest
+[ 16.000000 ]: start writing files to guest
+[ 19.000000 ]: uploaded: from video.mp4 to /home/novokrestdeb/video.mp4
+[ 19.000000 ]: finish writing files to guest
+[ 20.000000 ]: guestfs has been closed
+
+=======================
+
+=======================
+
+BIG_DOWNLOAD_TEST
+
+[ 0.000000 ]: guestfs handle has been created
+[ 9.000000 ]: guestfs has been launched
+[ 17.000000 ]: disk is mounted
+[ 17.000000 ]: start reading files
+[ 17.000000 ]: finish reading files from guest
+[ 17.000000 ]: start downloading files from guest
+[ 18.000000 ]: downloaded: from /home/novokrestdeb/video.mp4 to video.mp4
+[ 18.000000 ]: finish downloading files from guest
+[ 18.000000 ]: start writing files to guest
+[ 18.000000 ]: finish writing files to guest
+[ 18.000000 ]: guestfs has been closed
+
+=======================
+
+=======================
+
+BIG_DOWNLOAD_TEST
+
+[ 0.000000 ]: guestfs handle has been created
+[ 9.000000 ]: guestfs has been launched
+[ 16.000000 ]: disk is mounted
+[ 16.000000 ]: start reading files
+[ 16.000000 ]: finish reading files from guest
+[ 16.000000 ]: start downloading files from guest
+[ 17.000000 ]: downloaded: from /home/novokrestdeb/video.mp4 to video.mp4
+[ 17.000000 ]: finish downloading files from guest
+[ 17.000000 ]: start writing files to guest
+[ 17.000000 ]: finish writing files to guest
+[ 18.000000 ]: guestfs has been closed
+
+=======================
+
+=======================
+
+BIG_UPLOAD_TEST
+
+[ 0.000000 ]: guestfs handle has been created
+[ 9.000000 ]: guestfs has been launched
+[ 16.000000 ]: disk is mounted
+[ 16.000000 ]: start reading files
+[ 16.000000 ]: finish reading files from guest
+[ 16.000000 ]: start downloading files from guest
+[ 16.000000 ]: finish downloading files from guest
+[ 16.000000 ]: start writing files to guest
+[ 19.000000 ]: uploaded: from video.mp4 to /home/novokrestdeb/video.mp4
+[ 19.000000 ]: finish writing files to guest
+[ 19.000000 ]: guestfs has been closed
+
+=======================
+
+=======================
+
+BIG_DOWNLOAD_TEST
+
+[ 0.000000 ]: guestfs handle has been created
+[ 9.000000 ]: guestfs has been launched
+[ 16.000000 ]: disk is mounted
+[ 16.000000 ]: start reading files
+[ 16.000000 ]: finish reading files from guest
+[ 16.000000 ]: start downloading files from guest
+[ 17.000000 ]: downloaded: from /home/novokrestdeb/video.mp4 to video.mp4
+[ 17.000000 ]: finish downloading files from guest
+[ 17.000000 ]: start writing files to guest
+[ 17.000000 ]: finish writing files to guest
+[ 18.000000 ]: guestfs has been closed
+
+=======================
+
+=======================
+
+BIG_DOWNLOAD_TEST
+
+[ 0.000000 ]: guestfs handle has been created
+[ 8.000000 ]: guestfs has been launched
+[ 15.000000 ]: disk is mounted
+[ 15.000000 ]: start reading files
+[ 15.000000 ]: finish reading files from guest
+[ 15.000000 ]: start downloading files from guest
+[ 57.000000 ]: downloaded: from /home/novokrestdeb/subdisk.img to subdisk.img
+[ 99.000000 ]: downloaded: from /home/novokrestdeb/subdisk.img to subdisk.img
+[ 141.000000 ]: downloaded: from /home/novokrestdeb/subdisk.img to subdisk.img
+[ 142.000000 ]: downloaded: from /home/novokrestdeb/video.mp4 to video.mp4
+[ 142.000000 ]: finish downloading files from guest
+[ 142.000000 ]: start writing files to guest
+[ 142.000000 ]: finish writing files to guest
+[ 142.000000 ]: guestfs has been closed
+
+=======================
+
+=======================
+
+BIG_UPLOAD_TEST
+
+[ 0.000000 ]: guestfs handle has been created
+[ 9.000000 ]: guestfs has been launched
+[ 16.000000 ]: disk is mounted
+[ 16.000000 ]: start reading files
+[ 16.000000 ]: finish reading files from guest
+[ 16.000000 ]: start downloading files from guest
+[ 16.000000 ]: finish downloading files from guest
+[ 16.000000 ]: start writing files to guest
+[ 19.000000 ]: uploaded: from video.mp4 to /home/novokrestdeb/video.mp4
+[ 19.000000 ]: finish writing files to guest
+[ 20.000000 ]: guestfs has been closed
+
+=======================
+
+=======================
+
+BIG_DOWNLOAD_TEST
+
+[ 0.000000 ]: guestfs handle has been created
+[ 10.000000 ]: guestfs has been launched
+[ 17.000000 ]: disk is mounted
+[ 17.000000 ]: start reading files
+[ 17.000000 ]: finish reading files from guest
+[ 17.000000 ]: start downloading files from guest
+[ 28.000000 ]: downloaded: from /home/novokrestdeb/subdisk.img to subdisk.img
+[ 38.000000 ]: downloaded: from /home/novokrestdeb/subdisk.img to subdisk.img
+[ 48.000000 ]: downloaded: from /home/novokrestdeb/subdisk.img to subdisk.img
+[ 49.000000 ]: downloaded: from /home/novokrestdeb/video.mp4 to video.mp4
+[ 49.000000 ]: finish downloading files from guest
+[ 49.000000 ]: start writing files to guest
+[ 49.000000 ]: finish writing files to guest
+[ 49.000000 ]: guestfs has been closed
+
+=======================
+
