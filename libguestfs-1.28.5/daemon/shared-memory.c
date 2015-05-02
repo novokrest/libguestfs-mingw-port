@@ -26,7 +26,6 @@ daemon_shared_memory__open (struct shared_memory *shmemv)
 {
   struct daemon_shared_memory *shmem = (struct daemon_shared_memory *) shmemv;
   
-  uint64_t size;
   int fd;
   void *map = NULL;
   struct stat st;
@@ -41,6 +40,7 @@ daemon_shared_memory__open (struct shared_memory *shmemv)
   }
 
 #if 0
+  uint64_t size;
   size = st.st_size;
   shmem->size = shmem->size < size ? shmem->size : size;
   if (ftruncate (shmem->size) == -1) {
