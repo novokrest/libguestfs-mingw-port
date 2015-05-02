@@ -26,7 +26,7 @@ guestfs__set_shared_memory (guestfs_h *g, int enable,
                             const struct guestfs_set_shared_memory_argv *optargs)
 {
   int size;
-  const char *name, fullname;
+  const char *name;
 
   if (g->shmem) {
     os_shared_memory__free (g->shmem);
