@@ -30,6 +30,7 @@
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <time.h>
 #include <assert.h>
 
 #include "guestfs.h"
