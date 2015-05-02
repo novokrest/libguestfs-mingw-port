@@ -393,18 +393,23 @@ reply (xdrproc_t xdrp, char *ret)
 }
 
 /* Receive file chunks, repeatedly calling 'cb'. */
+#ifdef GUESTFS_SHMEM
 static int receive_file_shm (receive_cb cb, void *opaque);
+#endif /* GUESTFS_SHMEM */
 static int receive_file_sock (receive_cb cb, void *opaque);
 
 int
 receive_file (receive_cb cb, void *opaque)
 {
+#ifdef GUESTFS_SHMEM
   if (enable_shm)
     return receive_file_shm (cb, opaque);
-  else
-    return receive_file_sock (cb, opaque);
+#endif /* GUESTFS_SHMEM */
+
+  return receive_file_sock (cb, opaque);
 }
 
+#ifdef GUESTFS_SHMEM
 static int
 receive_file_shm (receive_cb cb, void *opaque)
 {
@@ -456,7 +461,7 @@ receive_file_shm (receive_cb cb, void *opaque)
 
     if (verbose)
       fprintf (stderr,
-               "guestfsd: receive_file: got chunk: cancel = 0x%x, len = %" PRIu64 ", buf = %p\n",
+               "guestfsd: receive_file: got chunk: cancel = 0x%x, len = %"PRIu64", buf = %p\n",
                chunk.cancel, chunk.len, shmem->ops->get_ptr (shmem));
 
     if (chunk.cancel != 0 && chunk.cancel != 1) {
@@ -495,6 +500,7 @@ receive_file_shm (receive_cb cb, void *opaque)
     }
   }
 }
+#endif /* GUESTFS_SHMEM */
 
 static int
 receive_file_sock (receive_cb cb, void *opaque)
@@ -612,18 +618,23 @@ static int check_for_library_cancellation (void);
 static int send_chunk (void *opaque);
 
 /* Also check if the library sends us a cancellation message. */
+#ifdef GUESTFS_SHMEM
 static int send_file_write_shm (const void *buf, size_t len);
+#endif /* GUESTFS_SHMEM */
 static int send_file_write_sock (const void *buf, size_t len);
 
 int
 send_file_write (const void *buf, size_t len)
 {
+#ifdef GUESTFS_SHMEM
   if (enable_shm)
     return send_file_write_shm (buf, len);
-  else
-    return send_file_write_sock (buf, len);
+#endif /* GUESTFS_SHMEM */
+
+  return send_file_write_sock (buf, len);
 }
 
+#ifdef GUESTFS_SHMEM
 static int
 send_file_write_shm (const void *buf, size_t len)
 {
@@ -652,6 +663,7 @@ send_file_write_shm (const void *buf, size_t len)
   if (cancel) return -2;
   return 0;
 }
+#endif /* GUESTFS_SHMEM */
 
 static int
 send_file_write_sock (const void *buf, size_t len)
@@ -724,18 +736,23 @@ check_for_library_cancellation (void)
   return 1;
 }
 
+#ifdef GUESTFS_SHMEM
 static int send_file_end_shm (int cancel);
+#endif /* GUESTFS_SHMEM */
 static int send_file_end_sock (int cancel);
 
 int
 send_file_end (int cancel)
 {
+#ifdef GUESTFS_SHMEM
   if (enable_shm)
     return send_file_end_shm (cancel);
-  else
-    return send_file_end_sock (cancel);
+#endif /* GUESTFS_SHMEM */
+
+  return send_file_end_sock (cancel);
 }
 
+#ifdef GUESTFS_SHMEM
 int
 send_file_end_shm (int cancel)
 {
@@ -745,6 +762,7 @@ send_file_end_shm (int cancel)
   chunk.len = 0;
   return send_chunk (&chunk);
 }
+#endif /* GUESTFS_SHMEM */
 
 int
 send_file_end_sock (int cancel)
@@ -757,18 +775,23 @@ send_file_end_sock (int cancel)
   return send_chunk (&chunk);
 }
 
+#ifdef GUESTFS_SHMEM
 static int send_chunk_shm (const guestfs_shm_chunk *);
+#endif /* GUESTFS_SHMEM */
 static int send_chunk_sock (const guestfs_chunk *);
 
 int
 send_chunk (void *opaque)
 {
+#ifdef GUESTFS_SHMEM
   if (enable_shm)
     return send_chunk_shm ((const guestfs_shm_chunk *) opaque);
-  else
-    return send_chunk_sock ((const guestfs_chunk *) opaque);
+#endif /* GUESTFS_SHMEM */
+
+  return send_chunk_sock ((const guestfs_chunk *) opaque);
 }
 
+#ifdef GUESTFS_SHMEM
 static int
 send_chunk_shm (const guestfs_shm_chunk *chunk)
 {
@@ -800,6 +823,7 @@ send_chunk_shm (const guestfs_shm_chunk *chunk)
 
   return err;
 }
+#endif /* GUESTFS_SHMEM */
 
 static int
 send_chunk_sock (const guestfs_chunk *chunk)

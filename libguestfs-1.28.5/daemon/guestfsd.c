@@ -84,10 +84,12 @@ static dev_t root_device = 0;
 int verbose = 0;
 int enable_network = 0;
 
+#ifdef GUESTFS_SHMEM
 int enable_shm = 0;
 struct shared_memory *shmem = NULL;
 
 static uint64_t get_shm_size (const char *cmdline);
+#endif /* GUESTFS_SHMEM */
 
 static void makeraw (const char *channel, int fd);
 static int print_shell_quote (FILE *stream, const struct printf_info *info, const void *const *args);
@@ -316,6 +318,7 @@ main (int argc, char *argv[])
   if (STRPREFIX (channel, "/dev/ttyS"))
     makeraw (channel, sock);
     
+#ifdef GUESTFS_SHMEM
   /* check if there is shared memroy for transmitting data */
   enable_shm = (cmdline && strstr (cmdline, "guestfs_shm=1"))
                && (stat ("/dev/uio0", &statbuf) == 0);
@@ -323,15 +326,16 @@ main (int argc, char *argv[])
   if (enable_shm) {
     shmem = daemon_shared_memory__new ("/dev/uio0", get_shm_size (cmdline));
     if (!shmem) {
-      perror ("Failure to initialize shared memory");
+      fprintf (stderr, "Failure to initialize shared memory");
       exit (EXIT_FAILURE);
     }
     if (shmem->ops->open (shmem) == -1) {
-      perror ("Failure to open shared memory");
+      fprintf (stderr, "Failure to open shared memory");
       exit (EXIT_FAILURE);
     }
     printf ("Shared memory open and mapped\n");
   }
+#endif /* GUESTFS_SHMEM */
 
   /* cmdline, channel not used after this point */
   free (cmdline);
@@ -367,10 +371,12 @@ main (int argc, char *argv[])
   /* Enter the main loop, reading and performing actions. */
   main_loop (sock);
   
+#ifdef GUESTFS_SHMEM
   if (enable_shm) {
     shmem->ops->close (shmem);
     daemon_shared_memory__free (shmem);
   }
+#endif /* GUESTFS_SHMEM */
 
   exit (EXIT_SUCCESS);
 }
@@ -465,6 +471,7 @@ is_root_device (const char *device)
   return is_root_device_stat (&statbuf);
 }
 
+#ifdef GUESTFS_SHMEM
 /* Return size of shared memory in bytes */
 static uint64_t
 get_shm_size (const char *cmdline)
@@ -485,6 +492,7 @@ get_shm_size (const char *cmdline)
   
   return (uint64_t) sizeM << 20;
 }
+#endif /* GUESTFS_SHMEM */
 
 /* Turn "/path" into "/sysroot/path".
  *

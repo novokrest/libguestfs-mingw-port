@@ -153,13 +153,14 @@ static int do_download_with_buf (const char *filename, char *buf, uint64_t bufle
 int
 do_download (const char *filename)
 {
-  if (enable_shm) {
-    return do_download_with_buf (filename, shmem->ops->get_ptr (shmem), shmem->ops->get_size (shmem));
-  }
-  else {
-    char buf[GUESTFS_MAX_CHUNK_SIZE];
-    return do_download_with_buf (filename, buf, sizeof buf);
-  }
+#ifdef GUESTFS_SHMEM
+  if (enable_shm)
+    return do_download_with_buf (filename, shmem->ops->get_ptr (shmem), 
+                                           shmem->ops->get_size (shmem));
+#endif /* GUESTFS_SHMEM */
+
+  char buf[GUESTFS_MAX_CHUNK_SIZE];
+  return do_download_with_buf (filename, buf, sizeof buf);
 }
 
 static int
@@ -244,15 +245,15 @@ static int do_download_offset_with_buf (const char *filename, int64_t offset, in
 int
 do_download_offset (const char *filename, int64_t offset, int64_t size)
 {
-  if (enable_shm) {
+#ifdef GUESTFS_SHMEM
+  if (enable_shm)
     return do_download_offset_with_buf (filename, offset, size, 
-                                        shmem->ops->get_ptr (shmem), shmem->ops->get_size (shmem));
-  }
-  else {
-    char buf[GUESTFS_MAX_CHUNK_SIZE];
-    return do_download_offset_with_buf (filename, offset, size, 
-                                        buf, sizeof buf);
-  }
+                                        shmem->ops->get_ptr (shmem), 
+                                        shmem->ops->get_size (shmem));
+#endif /* GUESTFS_SHMEM */
+
+  char buf[GUESTFS_MAX_CHUNK_SIZE];
+  return do_download_offset_with_buf (filename, offset, size, buf, sizeof buf);
 }
 
 static int

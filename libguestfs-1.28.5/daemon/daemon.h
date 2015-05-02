@@ -32,7 +32,9 @@
 
 #include "guestfs-internal-all.h"
 
-#include "shared-memory.h"
+#ifdef GUESTFS_SHMEM
+# include "shared-memory.h"
+#endif /* GUESTFS_SHMEM */
 
 /* Mountables */
 
@@ -47,8 +49,10 @@ extern int verbose;
 
 extern int enable_network;
 
+#ifdef GUESTFS_SHMEM
 extern int enable_shm;
 extern struct shared_memory *shmem;
+#endif /* GUESTFS_SHMEM */
 
 extern int autosync_umount;
 
