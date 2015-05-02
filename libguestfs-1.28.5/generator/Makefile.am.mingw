@@ -1,0 +1,123 @@
+# libguestfs-mingw-port
+
+if LINUX
+
+include $(top_srcdir)/subdir-rules.mk
+
+# In alphabetical order.
+sources = \
+	actions.ml \
+	actions.mli \
+	api_versions.ml \
+	api_versions.mli \
+	bindtests.ml \
+	c.ml \
+	checks.ml \
+	customize.ml \
+	daemon.ml \
+	docstrings.ml \
+	errnostring.ml \
+	events.ml \
+	mingw_main.ml \
+	optgroups.ml \
+	pr.ml \
+	pr.mli \
+	prepopts.ml \
+	prepopts.mli \
+	structs.ml \
+	structs.mli \
+	types.ml \
+	utils.ml \
+	utils.mli \
+	xdr.ml
+
+# In build dependency order.
+objects = \
+	types.cmo \
+	utils.cmo \
+	actions.cmo \
+	structs.cmo \
+	api_versions.cmo \
+	optgroups.cmo \
+	prepopts.cmo \
+	events.cmo \
+	pr.cmo \
+	docstrings.cmo \
+	checks.cmo \
+	c.cmo \
+	xdr.cmo \
+	daemon.cmo \
+	bindtests.cmo \
+	errnostring.cmo \
+	customize.cmo \
+	mingw_main.cmo
+
+EXTRA_DIST = $(sources) files-generated.txt
+
+OCAMLCFLAGS = $(OCAML_WARN_ERROR) -I $(srcdir) -I . -package unix,str
+
+noinst_PROGRAM = generator
+
+if HAVE_OCAML
+
+generator: $(objects)
+	$(OCAMLFIND) ocamlc $(OCAMLCFLAGS) -linkpkg $^ -o $@
+
+# Dependencies.
+%.cmi: %.mli
+	$(OCAMLFIND) ocamlc $(OCAMLCFLAGS) -c $< -o $@
+%.cmi: %.ml
+	$(OCAMLFIND) ocamlc $(OCAMLCFLAGS) -c $< -o $@
+%.cmo: %.ml
+	$(OCAMLFIND) ocamlc $(OCAMLCFLAGS) -c $< -o $@
+
+depend: .depend
+
+.depend: $(wildcard $(abs_srcdir)/*.mli) $(wildcard $(abs_srcdir)/*.ml)
+	rm -f $@ $@-t
+	$(OCAMLFIND) ocamldep -I ../ocaml -I $(abs_srcdir) $^ | \
+	  $(SED) 's/ *$$//' | \
+	  $(SED) -e :a -e '/ *\\$$/N; s/ *\\\n */ /; ta' | \
+	  $(SED) -e 's,$(abs_srcdir)/,$(builddir)/,g' | \
+	  sort > $@-t
+	mv $@-t $@
+
+-include .depend
+
+else
+
+# No OCaml compiler.  Just replace the generator with a script that
+# prints a warning.
+
+generator:
+	rm -f $@ $@-t
+	echo 'echo Warning: Install OCaml compiler in order to rebuild the generated files.' > $@-t
+	chmod +x $@-t
+	mv $@-t $@
+
+endif
+
+noinst_DATA = stamp-generator
+
+# Run the generator.
+# Git removes empty directories, so in cases where the
+# generator is creating the sole file in a directory, we
+# have to create the directory first.
+stamp-generator: generator
+	mkdir -p $(top_srcdir)/perl/lib/Sys
+	mkdir -p $(top_srcdir)/ruby/ext/guestfs
+	mkdir -p $(top_srcdir)/java/com/redhat/et/libguestfs
+	mkdir -p $(top_srcdir)/csharp
+	mkdir -p $(top_srcdir)/gobject/src
+	mkdir -p $(top_srcdir)/gobject/include
+	mkdir -p $(top_srcdir)/gobject/include/guestfs-gobject
+	cd $(top_srcdir) && $(abs_builddir)/generator
+	touch $@
+
+CLEANFILES = $(noinst_DATA) $(noinst_PROGRAM) *.cmi *.cmo *~
+
+DISTCLEANFILES = .depend
+
+SUFFIXES = .cmo .cmi .cmx .ml .mli .mll .mly
+
+endif LINUX

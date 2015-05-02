@@ -135,7 +135,7 @@ fi
 
 AC_ARG_ENABLE([mingwport],
    [AS_HELP_STRING([--enable-mingwport],
-                   [create config.h for libguestfs-mingw-port])],
+                   [enable mingwport build mode])],
    [case $enableval in
     yes|no) ;;
     *)      AC_MSG_ERROR([bad value $enableval for mingwport option]) ;;
@@ -144,14 +144,37 @@ AC_ARG_ENABLE([mingwport],
    [mingwport=no]
 )
 
+AM_CONDITIONAL([ENABLE_MINGWPORT], [test "$mingwport" = yes])
+
+windows_host=
+linux_host=
 dnl Check for libguestfs-mingw-port
 if test "$mingwport" = yes; then
     AC_MSG_NOTICE([libguestfs-mingw-port enabled])
     case $host in
-    *mingw*) AC_MSG_NOTICE([mingw environment detected]) ;;
-    *)       AC_MSG_WARN([use mingwport option only in MinGW environment]) ;;
+    *mingw*) AC_MSG_NOTICE([mingw environment has been detected])
+             [windows_host=yes] ;;
+    *linux*) AC_MSG_NOTICE([linux environment has been detected])
+             [linux_host=yes] ;;
+    *)       AC_MSG_WARN([unknown environment has been detected]) ;;
     esac
 fi
+
+AM_CONDITIONAL([WINDOWS], [test "x$windows_host" = xyes])
+AM_CONDITIONAL([LINUX], [test "x$linux_host" = xyes])
+
+AC_ARG_ENABLE([shared-memory],
+    [AS_HELP_STRING([--enable-shared-memory],
+                    [enable using shared memory])],
+    [case $enableval in
+     yes|no) ;;
+     *)      AC_MSG_ERROR([bad value $enableval for shared-memory option]) ;;
+     esac
+     shared_memory=$enableval],
+    [shared_memory=no]
+)
+
+AM_CONDITIONAL([USE_SHARED_MEMORY], [test "x$shared_memory" = "xyes"])
 
 dnl This, $nw, is the list of warnings we disable.
 nw=
@@ -385,9 +408,9 @@ struct sockaddr_un myaddr;
 dnl tgetent, tputs and UP [sic] are all required.  They come from the lower
 dnl tinfo library, but might be part of ncurses directly.
 PKG_CHECK_MODULES([LIBTINFO], [tinfo], [], [
-        AS_IF([test "$mingwport" = yes], AC_MSG_WARN([No package libtinfo found]), [
-        PKG_CHECK_MODULES([LIBTINFO], [ncurses])
-        ])
+    AS_IF([test "$mingwport" = yes], AC_MSG_WARN([No package libtinfo found]), [
+    PKG_CHECK_MODULES([LIBTINFO], [ncurses])
+    ])
 ])
 AC_SUBST([LIBTINFO_CFLAGS])
 AC_SUBST([LIBTINFO_LIBS])
@@ -958,12 +981,12 @@ AS_IF([test "x$with_readline" != xno],[
     ])
 
 dnl Check for PCRE (required)
-AS_IF([test "$mingwport" = yes], AC_MSG_WARN([skip checking if pcre exists]), [
+AS_IF([test "$mingwport" = yes && "$windows_host" = yes], AC_MSG_WARN([skip checking if pcre exists]), [
 PKG_CHECK_MODULES([PCRE], [libpcre])
 ])
 
 dnl Check for Augeas >= 1.0.0 (required).
-AS_IF([test "$mingwport" = yes], AC_MSG_WARN([skip checking if augeas >= 1.0.0 exists]), [
+AS_IF([test "$mingwport" = yes && "$windows_host" = yes], AC_MSG_WARN([skip checking if augeas >= 1.0.0 exists]), [
 PKG_CHECK_MODULES([AUGEAS],[augeas >= 1.0.0])
 ])
 
@@ -1011,7 +1034,7 @@ libvirt_ro_uri='qemu+unix:///system?socket=/var/run/libvirt/libvirt-sock-ro'
 AC_SUBST([libvirt_ro_uri])
 
 dnl libxml2 (required)
-AS_IF([test "$mingwport" = yes], AC_MSG_WARN([skip checking if libxml-2.0 exists]), [
+AS_IF([test "$mingwport" = yes && "$windows_host" = yes], AC_MSG_WARN([skip checking if libxml-2.0 exists]), [
 PKG_CHECK_MODULES([LIBXML2], [libxml-2.0])
 old_LIBS="$LIBS"
 LIBS="$LIBS $LIBXML2_LIBS"
@@ -1760,6 +1783,7 @@ AC_CONFIG_FILES([Makefile
                  golang/examples/Makefile
                  haskell/Makefile
                  inspector/Makefile
+                 ivshmem/Makefile
                  java/Makefile
                  java/examples/Makefile
                  lua/Makefile
@@ -1770,6 +1794,7 @@ AC_CONFIG_FILES([Makefile
                  ocaml/META
                  ocaml/Makefile
                  ocaml/examples/Makefile
+                 osdep/Makefile
                  p2v/Makefile
                  perl/Makefile
                  perl/Makefile.PL
@@ -1832,7 +1857,8 @@ AC_CONFIG_FILES([Makefile
                  tests/xml/Makefile
                  tools/Makefile
                  v2v/Makefile
-                 v2v/test-v2v-networks-and-bridges.xml])
+                 v2v/test-v2v-networks-and-bridges.xml
+                 winport/Makefile])
 AC_OUTPUT
 
 dnl Produce summary.

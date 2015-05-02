@@ -1,0 +1,46 @@
+# libguestfs-mingw-port
+
+noinst_LTLIBRARIES = libgnu.la
+
+libgnu_la_SOURCES = \
+    bitrotate.h \
+    cloexec.h \
+    c-ctype.h \
+    full-read.h \
+    full-write.h \
+    hash.h \
+    hash-pjw.h \
+    ignore-value.h \
+    intprops.h \
+    safe-read.h \
+    safe-write.h \
+    xalloc-oversized.h \
+    xstrtol.h \
+    glthread/lock.h \
+    bitrotate.c \
+    cloexec.c \
+    c-ctype.c \
+    full-read.c \
+    full-write.c \
+    hash.c \
+    hash-pjw.c \
+    safe-read.c \
+    safe-write.c \
+    xstrtol.c \
+    glthread/lock.c \
+    glthread/threadlib.c
+
+if LINUX
+libgnu_la_SOURCES += \
+    allocator.h \
+    areadlink.h \
+    careadlinkat.h \
+  	read-file.h \
+    allocator.c \
+    areadlink.c \
+    areadlinkat.c \
+	careadlinkat.c \
+	read-file.c \
+	xstrtoul.c 
+endif
+

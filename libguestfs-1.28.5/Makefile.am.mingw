@@ -1,0 +1,33 @@
+# libguestfs-mingw-port
+
+include $(top_srcdir)/common-rules.mk
+
+ACLOCAL_AMFLAGS = -I m4
+
+SUBDIRS = gnulib/lib 
+
+if WINDOWS
+SUBDIRS += winport
+endif
+
+SUBDIRS += osdep
+
+if LINUX
+SUBDIRS += generator
+endif
+
+SUBDIRS += src
+
+if LINUX
+if ENABLE_DAEMON
+SUBDIRS += daemon
+endif
+endif
+
+if LINUX
+if ENABLE_APPLIANCE
+SUBDIRS += ivshmem
+SUBDIRS += appliance
+endif
+endif
+
