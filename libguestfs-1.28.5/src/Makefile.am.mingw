@@ -6,6 +6,7 @@ noinst_PROGRAMS =
 
 CLEANFILES = stamp-guestfs.pod
 
+if LINUX
 generator_built = \
 	guestfs_protocol.x \
 	guestfs.h \
@@ -38,6 +39,7 @@ BUILT_SOURCES = \
 	guestfs_protocol.c \
 	guestfs_protocol.h \
 	errnostring-gperf.c
+endif
 
 EXTRA_DIST = \
 	$(BUILT_SOURCES) \
@@ -108,8 +110,7 @@ libguestfs_la_SOURCES = \
 	structs-compare.c \
 	structs-copy.c \
 	structs-free.c \
-	tmpdirs.c \
-	libguestfs.syms
+	tmpdirs.c 
 
 if USE_SHARED_MEMORY
 libguestfs_la_SOURCES += \
@@ -119,6 +120,11 @@ endif
 if WINDOWS
 libguestfs_la_SOURCES += \
 	wsa.c
+endif
+
+if LINUX
+libguestfs_la_SOURCES += \
+	libguestfs.syms
 endif
 
 libguestfs_la_CPPFLAGS = \
@@ -136,10 +142,11 @@ if WINDOWS
 libguestfs_la_CPPFLAGS += \
 	-DGUESTFS_DEFAULT_PATH='"C:/GuestFS"' \
 	-DGUESTFS_TEMP_PATH='"C:/GuestFS/tmp"' \
+	-DLIBOSINFO_DB_PATH='"$(datadir)/libosinfo/db"' \
 	-DQEMU='"C:/MinGW/msys/1.0/home/novokrestWin/qemu-windows-ivshmem/build/qemu-system-x86_64.exe"' \
 	-DHAVE_ENDIAN_H=1 \
 	-DWINVER=0x0501 \
-	-I$(top_Srcdir)/winport -I$(top_builddir)/winport 
+	-I$(top_srcdir)/winport -I$(top_builddir)/winport 
 endif
 
 if LINUX
@@ -155,6 +162,15 @@ libguestfs_la_CFLAGS = \
 	$(PCRE_CFLAGS) \
 	$(LIBXML2_CFLAGS) 
 
+if WINDOWS
+libguestfs_la_CFLAGS += \
+	-I$(top_srcdir)/deps/pcre/include \
+	-I$(top_srcdir)/deps/libxml2/include \
+	-I$(top_srcdir)/deps/xdr/include \
+	-I$(top_srcdir)/deps/libintl/include \
+	-I$(top_srcdir)/deps/iconv/include 
+endif
+
 libguestfs_la_LIBADD = \
 	liberrnostring.la \
 	libprotocol.la \
@@ -168,6 +184,11 @@ libguestfs_la_LIBADD = \
 
 if WINDOWS
 libguestfs_la_LIBADD += \
+	-L../deps/pcre/bin -lpcre3.dll \
+	-L../deps/libxml2/bin -llibxml2.dll \
+	-L../deps/xdr/bin -llibportablexdr-0.dll \
+	-L../deps/libintl/bin -llibintl3.dll \
+	-L../deps/iconv/bin -liconv.dll \
 	../winport/libwinport.la \
 	-lws2_32 -lwsock32 -lkernel32 -ladvapi32
 endif
@@ -180,8 +201,16 @@ endif
 # Force libtool to name the library 'libguestfs.so.0.$(MAX_PROC_NR).0'.
 # Include the version script to limit which symbols are exported.
 libguestfs_la_LDFLAGS = \
-	-version-info $(MAX_PROC_NR):0:$(MAX_PROC_NR) \
+	-version-info $(MAX_PROC_NR):0:$(MAX_PROC_NR)
+
+if LINUX
+libguestfs_la_LDFLAGS +=  \
 	$(VERSION_SCRIPT_FLAGS)$(srcdir)/libguestfs.syms
+endif
+
+if WINDOWS
+libguestfs_la_LDFLAGS += -no-undefined
+endif
 
 if HAVE_FUSE
 # XXX Unfortunately FUSE_CFLAGS defines _FILE_OFFSET_BITS=64.
@@ -200,16 +229,23 @@ liberrnostring_la_SOURCES = \
 	errnostring.c
 liberrnostring_la_CFLAGS = $(GCC_VISIBILITY_HIDDEN)
 
+if LINUX
 errnostring-gperf.c: errnostring-gperf.gperf
 	rm -f $@
 	$(GPERF) -t $< > $@-t
 	mv $@-t $@
+endif
 
 # This convenience library is solely to compile its generated sources with
 # custom flags.
 libprotocol_la_SOURCES = guestfs_protocol.c  guestfs_protocol.h
 libprotocol_la_CFLAGS = \
 	-Wall -Wno-unused -fno-strict-aliasing $(GCC_VISIBILITY_HIDDEN)
+
+if WINDOWS
+libprotocol_la_CPPFLAGS = \
+	-I$(top_srcdir)/deps/xdr/include
+endif
 
 if HAVE_RPCGEN
 RPCGEN_DEFS =
@@ -286,7 +322,6 @@ test_utils_LDADD = \
 
 check-valgrind:
 	$(MAKE) VG="@VG@" check
-endif
 
 # Pkgconfig.
 
@@ -314,3 +349,4 @@ stamp-guestfs.pod: guestfs.pod \
 	  --license LGPLv2+ \
 	  $<
 	touch $@
+endif
