@@ -31,7 +31,6 @@ libosdep_la_CFLAGS = \
 
 if WINDOWS
 libosdep_la_LIBADD = \
-    ../winport/libwinport.la \
     -lws2_32 -lwsock32
 endif
 
