@@ -1036,7 +1036,7 @@ libvirt_ro_uri='qemu+unix:///system?socket=/var/run/libvirt/libvirt-sock-ro'
 AC_SUBST([libvirt_ro_uri])
 
 dnl libxml2 (required)
-AS_IF([test "$mingwport" = yes], AC_MSG_WARN([skip checking if libxml-2.0 exists]), [
+AS_IF([test "x$windows_host" = xyes], AC_MSG_WARN([skip checking if libxml-2.0 exists]), [
 PKG_CHECK_MODULES([LIBXML2], [libxml-2.0])
 old_LIBS="$LIBS"
 LIBS="$LIBS $LIBXML2_LIBS"
