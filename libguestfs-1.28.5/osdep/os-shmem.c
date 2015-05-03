@@ -328,7 +328,6 @@ os_shared_memory__new (const char *name, uint64_t size)
   shmem->fd = -1;
   shmem->ptr = NULL;
 
-  perror ("os-shmem: Before return STAMP013\n");
   return (struct os_shared_memory *) shmem;
 }
 
