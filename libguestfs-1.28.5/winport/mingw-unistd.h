@@ -92,7 +92,7 @@ int __mingw_sleep( unsigned long, unsigned long );
  */
 #define _FAKE_TIME_H_SOURCED	1
 #define __need_struct_timespec	1
-//#include <parts/time.h>
+#include <parts/time.h>
 
 _BEGIN_C_DECLS
 
