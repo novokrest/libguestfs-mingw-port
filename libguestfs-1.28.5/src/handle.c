@@ -445,6 +445,7 @@ shutdown_backend (guestfs_h *g, int check_for_errors)
 #ifdef GUESTFS_SHMEM
   /* Close shared memory */
   if (g->shmem) {
+      g->shmem->ops->close (g->shmem);
       os_shared_memory__free (g->shmem);
       g->shmem = NULL;
   }
