@@ -126,6 +126,7 @@ CPPFLAGS = \
 	-DGUESTFS_DEFAULT_PATH='"C:/GuestFS"' \
     -DGUESTFS_TEMP_PATH='"C:/GuestFS/tmp"' \
     -DQEMU='"C:/MinGW/msys/1.0/home/novokrestWin/qemu-windows-ivshmem/build/qemu-system-x86_64.exe"' \
+    -DGUESTFS_SHMEM=1 \
 	-DGUESTFS_WARN_DEPRECATED=1 \
 	-DGUESTFS_PRIVATE=1 \
 	-DLIBOSINFO_DB_PATH='"$(datadir)/libosinfo/db"' \
