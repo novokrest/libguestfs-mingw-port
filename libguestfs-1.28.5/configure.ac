@@ -109,6 +109,8 @@ gl_INIT
 AC_PROG_LIBTOOL
 AC_PROG_LN_S
 
+LT_INIT([win32-dll])
+
 dnl Define the host CPU architecture (defines 'host_cpu')
 AC_CANONICAL_HOST
 
@@ -981,12 +983,12 @@ AS_IF([test "x$with_readline" != xno],[
     ])
 
 dnl Check for PCRE (required)
-AS_IF([test "$mingwport" = yes && "$windows_host" = yes], AC_MSG_WARN([skip checking if pcre exists]), [
+AS_IF([test "x$windows_host" = xyes], AC_MSG_WARN([skip checking if pcre exists]), [
 PKG_CHECK_MODULES([PCRE], [libpcre])
 ])
 
 dnl Check for Augeas >= 1.0.0 (required).
-AS_IF([test "$mingwport" = yes && "$windows_host" = yes], AC_MSG_WARN([skip checking if augeas >= 1.0.0 exists]), [
+AS_IF([test "x$windows_host" = xyes], AC_MSG_WARN([skip checking if augeas >= 1.0.0 exists]), [
 PKG_CHECK_MODULES([AUGEAS],[augeas >= 1.0.0])
 ])
 
@@ -1034,7 +1036,7 @@ libvirt_ro_uri='qemu+unix:///system?socket=/var/run/libvirt/libvirt-sock-ro'
 AC_SUBST([libvirt_ro_uri])
 
 dnl libxml2 (required)
-AS_IF([test "$mingwport" = yes && "$windows_host" = yes], AC_MSG_WARN([skip checking if libxml-2.0 exists]), [
+AS_IF([test "$mingwport" = yes], AC_MSG_WARN([skip checking if libxml-2.0 exists]), [
 PKG_CHECK_MODULES([LIBXML2], [libxml-2.0])
 old_LIBS="$LIBS"
 LIBS="$LIBS $LIBXML2_LIBS"
