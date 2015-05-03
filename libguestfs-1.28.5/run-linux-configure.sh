@@ -4,9 +4,10 @@ QEMU="C:/MinGW/msys/1.0/home/novokrestWin/qemu-windows-ivshmem/build/qemu-system
 
 #automake -a
 #autoreconf --install --force
-./configure -C \
+./configure \
     --enable-mingwport \
     --enable-shared-memory \
-    --disable-daemon \
-    --disable-appliance \
-    --with-qemu=no
+    --enable-daemon \
+    --enable-appliance 
+#    --without-qemu
+#    --with-qemu=$QEMU
