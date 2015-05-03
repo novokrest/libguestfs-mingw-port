@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
+#include "win-port.h"
+
 int 
 vasprintf (char** __restrict ret, const char* __restrict format, va_list ap)
 {

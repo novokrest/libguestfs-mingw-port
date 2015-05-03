@@ -1,5 +1,7 @@
 #ifdef __MINGW32__
 
+#include "win-port.h"
+
 int
 symlink (const char *path1, const char *path2)
 {
@@ -10,6 +12,8 @@ symlink (const char *path1, const char *path2)
 
 #include <windows.h>
 #include <sys/stat.h>
+
+#include "win-port.h"
 
 int
 symlink (const char *path1, const char *path2)

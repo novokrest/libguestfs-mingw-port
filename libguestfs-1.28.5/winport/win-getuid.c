@@ -4,9 +4,11 @@
 #include <lmcons.h>
 #include <sddl.h>
 
+#include "win-port.h"
+
 /* Returned buffer must be freed by caller */
 char *
-getusername ()
+getusername (void)
 {
   char *ret;
   int len;
@@ -31,7 +33,7 @@ getusername ()
 
 /* Returned buffer must be freed by caller with LocalFree() */
 char *
-getusid ()
+getusid (void)
 {
   HANDLE hProc;
   HANDLE hToken;
@@ -40,6 +42,9 @@ getusid ()
   char *ret;
 
   hProc = OpenProcess (PROCESS_QUERY_INFORMATION, FALSE, GetCurrentProcessId ());
+  if (!hProc) {
+    return NULL;
+  }
 
   if (!OpenProcessToken (GetCurrentProcess (), TOKEN_QUERY, &hToken)) {
     return NULL;
@@ -75,7 +80,7 @@ getusid ()
 }
 
 int
-getuid ()
+getuid (void)
 {
   PSID sid = NULL;
   TCHAR *domain = NULL;
@@ -114,7 +119,7 @@ getuid ()
 }
 
 int
-geteuid ()
+geteuid (void)
 {
     return getuid ();
 }

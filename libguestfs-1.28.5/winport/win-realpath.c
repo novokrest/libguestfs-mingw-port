@@ -2,12 +2,14 @@
 
 #include <windows.h>
 
+#include "win-port.h"
+
 char * 
 realpath (const char *path, char *resolved_path)
 {
   char buf[1];
   char* ret;
-  int len, path_len;
+  size_t len, path_len;
 
   if (strlen (path) > MAX_PATH) {
     return NULL;

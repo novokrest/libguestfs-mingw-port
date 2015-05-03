@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "win-port.h"
+
 char *
 strndup (const char *s, size_t n)
 {
