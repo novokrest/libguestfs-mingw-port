@@ -7,6 +7,7 @@
 #ifdef _WIN32
 
 #include <stdio.h>
+#include <inttypes.h>
 #include <windows.h>
 
 static char *
@@ -123,7 +124,7 @@ windows_shared_memory__print(struct os_shared_memory *shmemv, int n)
 
   printf ("shared memory info:\n"
           "  name: %s\n"
-          "  size: %d\n"
+          "  size: %"PRIu64"\n"
           "  first %d bytes: %s\n",
           shmem->name, shmem->size, n, buf);
 
@@ -291,7 +292,7 @@ posix_shared_memory__print(struct os_shared_memory *shmemv, int n)
 
   printf ("shared memory info:\n"
           "  name: %s\n"
-          "  size: %" PRIu64 "\n"
+          "  size: %"PRIu64"\n"
           "  buf: %s\n",
           shmem->name, shmem->size, buf);
 

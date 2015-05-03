@@ -17,19 +17,18 @@ os_open (char const *pathname, int flags, ...)
   va_list vl;
 
   oflags = flags | O_BINARY;
+  pmode = S_IREAD;
   
   if (oflags & O_CREAT) {
     va_start (vl, flags);
     mode = va_arg (vl, int);
     va_end (vl);
 
-    pmode = S_IREAD;
-
     if (mode & S_IWUSR || mode & S_IWGRP || mode & S_IWOTH) {
         pmode |= S_IWRITE;
     }
 
-    return open (pathname, oflags, mode);
+    return open (pathname, oflags, pmode);
   }
 
   return open (pathname, oflags, pmode);
