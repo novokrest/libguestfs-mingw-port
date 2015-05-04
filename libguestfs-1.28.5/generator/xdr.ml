@@ -255,6 +255,12 @@ struct guestfs_shm_chunk {
   uint64_t len;
 };
 
+/* Confirmation chunk (status =  0 - OK
+                       status = -1 - ERROR) */
+struct guestfs_confirm_chunk {
+  int status;
+};
+
 /* Progress notifications.  Daemon self-limits these messages to
  * at most one per second.  The daemon can send these messages
  * at any time, and the caller should discard unexpected messages.
