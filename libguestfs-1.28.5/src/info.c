@@ -243,7 +243,7 @@ get_json_output (guestfs_h *g, const char *filename)
   yajl_val tree = NULL;
   struct stat statbuf;
 
-  fd = open (filename, O_RDONLY /* NB: !O_CLOEXEC */);
+  fd = os_open (filename, O_RDONLY /* NB: !O_CLOEXEC */);
   if (fd == -1) {
     perrorf (g, "disk info: %s", filename);
     return NULL;

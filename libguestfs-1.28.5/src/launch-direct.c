@@ -1008,7 +1008,7 @@ qemu_supports_device (guestfs_h *g, struct backend_direct_data *data,
 static int
 is_openable (guestfs_h *g, const char *path, int flags)
 {
-  int fd = open (path, flags);
+  int fd = os_open (path, flags);
   if (fd == -1) {
     debug (g, "is_openable: %s: %s", path, strerror (errno));
     return 0;

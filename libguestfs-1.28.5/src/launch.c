@@ -485,7 +485,7 @@ get_umask (guestfs_h *g)
   struct stat statbuf;
   CLEANUP_FREE char *filename = safe_asprintf (g, "%s/umask-check", g->tmpdir);
 
-  fd = open (filename, O_WRONLY|O_CREAT|O_TRUNC|O_NOCTTY|O_CLOEXEC, 0777);
+  fd = os_open (filename, O_WRONLY|O_CREAT|O_TRUNC|O_NOCTTY|O_CLOEXEC, 0777);
   if (fd == -1)
     return -1;
 
