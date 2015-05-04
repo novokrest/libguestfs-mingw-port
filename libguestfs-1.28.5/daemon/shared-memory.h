@@ -10,6 +10,7 @@ struct shared_memory_ops
   const char *(*get_name) (struct shared_memory *shmem);
   uint64_t (*get_size) (struct shared_memory *shmem);
   void *(*get_ptr) (struct shared_memory *shmem); 
+  void (*print) (struct shared_memory *shmem, size_t n);
 };
 
 struct shared_memory

@@ -104,12 +104,28 @@ daemon_shared_memory__get_ptr (struct shared_memory *shmemv)
   return shmem->ptr;
 }
 
+static void
+daemon_shared_memory__print (struct shared_memory *shmemv, size_t n)
+{
+  struct daemon_shared_memory *shmem = (struct daemon_shared_memory *) shmemv;
+  char *buf;
+  size_t i = 0;
+
+  buf = (char *) shmem->ptr;
+  while (i < n) {
+    printf ("%02x ", (int) buf[i]);
+    ++i;
+  }
+  printf ("\n");
+}
+
 static struct shared_memory_ops daemon_ops = {
   .open = daemon_shared_memory__open,
   .close = daemon_shared_memory__close,
   .get_name = daemon_shared_memory__get_name,
   .get_size = daemon_shared_memory__get_size,
-  .get_ptr = daemon_shared_memory__get_ptr
+  .get_ptr = daemon_shared_memory__get_ptr,
+  .print = daemon_shared_memory__print
 };
 
 struct shared_memory *
