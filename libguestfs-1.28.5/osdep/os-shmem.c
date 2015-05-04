@@ -114,21 +114,14 @@ windows_shared_memory__print(struct os_shared_memory *shmemv, int n)
 {
   struct windows_shared_memory *shmem = (struct windows_shared_memory *) shmemv;
   char *buf;
+  int i = 0;
 
-  buf = malloc (n + 1);
-  if (!buf)
-    return;
-
-  memcpy (buf, (char *) shmem->ptr, n);
-  buf[n] = '\0';
-
-  printf ("shared memory info:\n"
-          "  name: %s\n"
-          "  size: %"PRIu64"\n"
-          "  first %d bytes: %s\n",
-          shmem->name, shmem->size, n, buf);
-
-  free (buf);
+  buf = (char *) shmem->ptr;
+  while (i < n) {
+    printf ("%02x ", (int) buf[i]);
+    ++i;
+  }
+  printf ("\n");
 }
 
 static struct os_shared_memory_ops ops = {
@@ -282,21 +275,14 @@ posix_shared_memory__print(struct os_shared_memory *shmemv, int n)
 {
   struct posix_shared_memory *shmem = (struct posix_shared_memory *) shmemv;
   char *buf;
+  int i = 0;
 
-  buf = malloc (n + 1);
-  if (!buf)
-    return;
-
-  memcpy (buf, (char *) (shmem->ptr), n);
-  buf[n] = '\0';
-
-  printf ("shared memory info:\n"
-          "  name: %s\n"
-          "  size: %"PRIu64"\n"
-          "  buf: %s\n",
-          shmem->name, shmem->size, buf);
-
-  free (buf);
+  buf = (char *) shmem->ptr;
+  while (i < n) {
+    printf ("%02x ", (int) buf[i]);
+    ++i;
+  }
+  printf ("\n");
 }
 
 static struct os_shared_memory_ops ops = {
