@@ -56,7 +56,7 @@ stamp-supermin: make.sh packagelist
 	  build-appliance
 	touch $@
 
-build-appliance:
+build-appliance: supermin.d/daemon.tar.gz
 	./build.sh
 #	mkdir -p loop-dir && ./sync-appliance.sh && rm -r loop-dir
 
