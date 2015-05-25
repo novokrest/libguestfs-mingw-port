@@ -874,10 +874,12 @@ guestfs__add_drive_opts (guestfs_h *g, const char *filename,
       /* We have to check for the existence of the file since that's
        * required by the API.
        */
+#ifndef _WIN32
       if (access (filename, R_OK) == -1) {
         perrorf (g, "%s", filename);
         return -1;
       }
+#endif /* _WIN32 */
 
       drv = create_drive_file (g, &data);
     }
